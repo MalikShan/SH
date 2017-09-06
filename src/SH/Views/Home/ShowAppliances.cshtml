@@ -1,0 +1,114 @@
+@model IEnumerable<SH.Models.Appliances>
+
+&nbsp;&nbsp;
+
+<style>
+    .container {
+        padding-top: 30px;
+        padding-bottom: 20px;
+    }
+</style>
+
+
+@foreach (Appliances A in Model)
+{
+
+
+
+
+
+
+
+    <div class="container">
+        <center>
+            <div class="row">
+
+                <div class="col-xs-12">
+                    @if (A.Name == "AC" && A.Status == "ON")
+                    {
+                        <a href="/Home/AddTransaction?id=@A.Id" class="alert alert-success">
+                            <img src="~/images/air-conditioner.png" width="150" height="100" />
+                        </a>
+                    }
+
+                    @if (A.Name == "AC" && A.Status == "OFF")
+                    {
+
+                        <a href="/Home/AddTransaction?id=@A.Id" class="alert alert-danger">
+                            <img src="~/images/air-conditioner.png" width="150" height="100" />
+                        </a>
+                    }
+                </div>
+
+                <div class="col-xs-12">
+                    @if (A.Name == "TV" && A.Status == "ON")
+                    {
+                        <a href="/Home/AddTransaction?id=@A.Id" class="alert alert-success">
+                            <img src="~/images/air-conditioner.png" width="150" height="100" />
+                        </a>
+                    }
+
+                    @if (A.Name == "TV" && A.Status == "OFF")
+                    {
+
+                        <a href="/Home/AddTransaction?id=@A.Id" class="alert alert-danger">
+                            <img src="~/images/air-conditioner.png" width="150" height="100" />
+                        </a>
+                    }
+                </div>
+
+                <div class="col-xs-12">
+                    @if (A.Name == "Bulb" && A.Status == "ON")
+                    {
+                        <a href="/Home/AddTransaction?id=@A.Id" class="alert alert-success">
+                            <img src="~/images/air-conditioner.png" width="150" height="100" />
+                        </a>
+                    }
+
+                    @if (A.Name == "Bulb" && A.Status == "OFF")
+                    {
+
+                        <a href="/Home/AddTransaction?id=@A.Id" class="alert alert-danger">
+                            <img src="~/images/air-conditioner.png" width="150" height="100" />
+                        </a>
+                    }
+                </div>
+
+
+
+                <div class="col-xs-12">
+                    @if (A.Name == "Fan" && A.Status == "ON")
+                    {
+                        <a href="/Home/AddTransaction?id=@A.Id" class="alert alert-success">
+                            <img src="~/images/air-conditioner.png" width="150" height="100" />
+                        </a>
+                    }
+
+                    @if (A.Name == "Fan" && A.Status == "OFF")
+                    {
+
+                        <a href="/Home/AddTransaction?id=@A.Id" class="alert alert-danger">
+                            <img src="~/images/air-conditioner.png" width="150" height="100" />
+                        </a>
+                    }
+                </div>
+
+
+
+
+
+
+
+            </div>
+
+        </center>
+
+
+    </div>
+
+
+
+}
+
+
+

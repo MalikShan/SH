@@ -1,0 +1,21 @@
+﻿@*@model SH.Models.AspNetUsers*@
+
+
+
+
+@if (ViewBag.msg != null)
+{
+    <div class="alert alert-success"> <span class="glyphicon glyphicon-user"></span><h4>@ViewBag.msg</h4> </div>
+
+}
+
+
+
+
+
+
+@using (Html.BeginForm("Sendemail", "Home", FormMethod.Post))
+{
+
+
+}

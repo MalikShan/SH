@@ -1,0 +1,77 @@
+@model SH.Models.Room
+
+@{
+    ViewData["Title"] = "Room";
+}
+
+<center><h3>Add Room Please!</h3></center>
+
+@if (ViewBag.Message != null)
+{
+    @if (ViewBag.Message == "Successfully Saved")
+    {
+        <div class="alert alert-success" id="myDiv"> <span class="glyphicon glyphicon-ok-sign"></span><h4>@ViewBag.Message</h4> </div>
+    }
+
+
+    else
+    {
+        <div class="alert alert-danger" id="myDiv"> <span class="glyphicon glyphicon-remove-circle"></span><h4>@ViewBag.Message</h4> </div>
+    }
+}
+
+
+
+
+
+
+
+
+
+<form asp-action="Room">
+    <div class="form-horizontal">
+
+        <hr />
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <div class="form-group">
+            <label asp-for="Name" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="Name" class="form-control" required />
+                <span asp-validation-for="Name" class="text-danger" />
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Add room" class="btn btn-info btn1" />
+                <a asp-area="" asp-controller="Home" asp-action="Showrooms" class="btn btn-info">View Rooms</a>
+            </div>
+        </div>
+    </div>
+</form>
+<br />
+<br />
+<center>
+    <div>
+        <a asp-action="dashoboard" class="btn btn-info">Back to Dashboard</a>
+    </div>
+</center>
+
+
+@section Scripts {
+
+    <script>
+
+
+
+        $("#myDiv").fadeOut(4000);
+
+
+    </script>
+
+
+
+
+}
+

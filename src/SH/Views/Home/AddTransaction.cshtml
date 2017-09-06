@@ -1,0 +1,14 @@
+﻿<h2>Your appliance is on</h2>
+
+
+@if (ViewBag.AppStatus != null)
+{
+    @if (ViewBag.AppStatus == "ON")
+    {
+        <h2>Your appliance is OFF</h2>
+    }
+    @if (ViewBag.AppStatus == "OFF")
+    {
+        <h2>Your appliance is ON</h2>
+    }
+}

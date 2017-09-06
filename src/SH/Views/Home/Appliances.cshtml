@@ -1,0 +1,98 @@
+@model SH.Models.Appliances
+
+@{
+    ViewData["Title"] = "Appliances";
+
+}
+
+<center><h3>Add Appliance Please!</h3></center>
+
+@if (ViewBag.Message != null)
+{
+    @if (ViewBag.Message == "Successfully Saved")
+    {
+        <div class="alert alert-success" id="myDiv"> <span class="glyphicon glyphicon-user"></span><h4>@ViewBag.Message</h4> </div>
+    }
+
+    else
+    {
+        <div class="alert alert-danger"> <span class="glyphicon glyphicon-user"></span><h4>@ViewBag.Message</h4> </div>
+    }
+}
+
+
+
+
+
+
+
+<form asp-action="Appliances">
+    <div class="form-horizontal">
+
+        <hr />
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+
+
+
+        <div class="form-group">
+            <label asp-for="Name" class="col-md-2 control-label "></label>
+            <div class="col-md-10">
+
+
+
+                <select name="appliances" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" required>
+                    <option value="">Select Appliance Please</option>
+                    <option value="Fan">Fan</option>
+                    <option value="Bulb">Bulb</option>
+                    <option value="AC">AC</option>
+                    <option value="TV">TV</option>
+                </select>
+
+                <span asp-validation-for="Name" class="text-danger" />
+            </div>
+        </div>
+        <div class="form-group">
+
+            <div class="col-md-10" hidden>
+                <input asp-for="Status" class="form-control" value="OFF" />
+                <span asp-validation-for="Status" class="text-danger" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="Voltages" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="Voltages" class="form-control" />
+                <span asp-validation-for="Voltages" class="text-danger" />
+            </div>
+        </div>
+
+        @if (ViewBag.id != null)
+        {
+            <input type="hidden" name="rid" value="@ViewBag.id" />
+        }
+
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Add appliances" class="btn btn-info" />
+            </div>
+        </div>
+    </div>
+</form>
+
+<br />
+<br />
+<center>
+    <div>
+        <a asp-action="Showrooms" class="btn btn-info">Back to Rooms</a>
+    </div>
+</center>
+@section Scripts {
+    <script>
+
+        $("#myDiv").fadeOut(4000);
+
+    </script>
+
+}
