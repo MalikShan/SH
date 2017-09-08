@@ -643,6 +643,18 @@ namespace SH
 
         }
 
+        public IActionResult demo()
+        {
+            Uri myuri = new Uri("Http://192.168.1.101/gpio3/1");
+
+            HttpWebRequest myreq = (HttpWebRequest)WebRequest.Create(myuri);
+            WebResponse webres = myreq.GetResponse();
+
+            return View();
+
+        }
+
+
 
         public IActionResult highchrt()
         {
