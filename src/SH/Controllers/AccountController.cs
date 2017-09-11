@@ -64,7 +64,7 @@ namespace SH.Controllers
                 if (result.Succeeded)
                 {
                     _logger.LogInformation(1, "User logged in.");
-                    return RedirectToLocal(returnUrl);
+                    return Redirect("/Home/dashoboard");
                 }
                 if (result.RequiresTwoFactor)
                 {

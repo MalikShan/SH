@@ -1,0 +1,29 @@
+
+@{
+    Layout = "";
+}
+
+
+@model IEnumerable<SH.Models.Room>
+
+@{
+    ViewData["Title"] = "list";
+    IList<Room> rooms = ViewBag.rm;
+}
+
+<form asp-action="users">
+
+    @foreach (var item in rooms)
+    {
+
+        
+
+
+
+
+       @item.Name <input type="checkbox" value="@item.Name" name="box" />
+
+     
+    
+    }
+    </form>

@@ -1,0 +1,55 @@
+@model IEnumerable<SH.Models.Room>
+
+@{
+    ViewData["Title"] = "Showrooms";
+}
+
+<center><h3>All Rooms</h3></center>
+
+
+<table class="table">
+    <thead>
+        <tr>
+
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.NoOfAppliances)
+            </th>
+
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+
+                <td>
+                    <strong> @Html.DisplayFor(modelItem => item.Name)</strong>
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.NoOfAppliances)
+                </td>
+
+                <td>
+                    <a href="/Home/Appliances?roomid=@item.Id" class="btn btn-success" data-toggle="tooltip" title="Add new Appliance"><i class="fa fa-plus-circle  fa-2x" aria-hidden="true"></i></a>
+                    <a href="/Home/ShowAppliances?roomid=@item.Id" class="btn btn-success" data-toggle="tooltip" title="Show all Appliances"><i class="fa fa-lightbulb-o fa-2x" aria-hidden="true"></i></a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section scripts{
+    <script>
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        })
+
+
+    </script>
+
+
+}

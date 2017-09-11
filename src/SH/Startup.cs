@@ -46,10 +46,12 @@ namespace SH
             services.AddApplicationInsightsTelemetry(Configuration);
 
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
-
-            services.AddDbContext<smartdbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("cs")));
+
+            services.AddDbContext<smarthomeContext>(options =>
+               options.UseSqlServer(Configuration.GetConnectionString("cs")));
+
+
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -84,7 +86,7 @@ namespace SH
             app.UseApplicationInsightsExceptionTelemetry();
 
             app.UseStaticFiles();
-
+            
             app.UseIdentity();
 
             // Add external authentication middleware below. To configure them please see http://go.microsoft.com/fwlink/?LinkID=532715

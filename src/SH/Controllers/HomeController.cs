@@ -13,15 +13,16 @@ using SH.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using System.Net.Mail;
+using Microsoft.AspNetCore.Http;
 
 namespace SH
 {
 
     public class HomeController : Controller
     {
-        public smartdbContext lc = null;
+        public smarthomeContext lc = null;
 
-        public HomeController(smartdbContext abc)
+        public HomeController(smarthomeContext abc)
         {
 
             lc = abc;
@@ -258,21 +259,98 @@ namespace SH
 
 
         }
+
+
+          public IActionResult Showrooms()
+        {
+
+            try { 
+            var claimsIdentity = (ClaimsIdentity)this.User.Identity;
+            var claim = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            var userId = claim.Value;
+
+            
+            AspNetUsers admin = lc.AspNetUsers.Where(u=> u.Id == userId).SingleOrDefault<AspNetUsers>();
+            if(admin.Email == "shan4924@gmail.com")
+            {
+                    IList<Room> list = lc.Room.ToList<Room>();
+
+                    return View(list);
+                    
+            }
+
+            }
+            catch
+            {
+
+                return Redirect("/Account/Login");
+            }
        
 
-        public IActionResult Showrooms()
-        {
-            IList<Room> list = lc.Room.ToList<Room>();
+        //// object of loged in user
+        ////user.permission
+        //IList<Room> filtered = new List<Room>();
+        //IList<Room> list = lc.Room.ToList<Room>();
+
+        ////if (User.email == firt)
+        ////{
+        ////    return
+        ////}
+
+        //foreach (var item in list)
+        //{
+        //    if (Permission.contain(item.Name))
+        //    {
+        //        filtered.Add(item);
+
+        //    }
+
+        //}
 
 
-
-            return View(list);
+         return View();
         }
 
 
-       
 
        
+
+
+        public IActionResult othershowroom(int arg)
+        {
+            IList<Room> filtered = new List<Room>();
+            Residents user = lc.Residents.Where(u => u.Id == arg).SingleOrDefault();
+
+            if (user.Id == arg)
+            {
+                //login user ki id lani ha abhi
+                // resident wali b sinle lost ai ha then id match then ik loop htm
+
+                
+                
+                IList<Room> rooms = lc.Room.ToList<Room>();
+
+                foreach (var items in rooms)
+                {
+                    if (user.Permission.Contains(items.Name))
+                    {
+                        filtered.Add(items);
+
+                    }
+
+
+                }
+            }
+
+            else
+            {
+                return Redirect("/Home/userlogin");
+            }
+
+            return View(filtered);
+        }
+
+
         public IActionResult dashoboard()
         {
             IList<Room> list = lc.Room.ToList<Room>();
@@ -281,8 +359,8 @@ namespace SH
             IList<Appliances> lista = lc.Appliances.ToList<Appliances>();
             ViewData["appCount"] = lista.Count;
 
-            //IList<AspNetUsers> listu = lc.AspNetUsers.ToList<AspNetUsers>();
-            //ViewData["userpCount"] = listu.Count;
+            IList<AspNetUsers> listu = lc.AspNetUsers.ToList<AspNetUsers>();
+            ViewData["userpCount"] = listu.Count;
 
             return View();
         }
@@ -470,9 +548,6 @@ namespace SH
         public IActionResult email()
         {
 
-
-
-
             IList<Transaction> list = lc.Transaction.Where(u => u.Permission == null && u.Inspect == null).ToList<Transaction>();
 
             //require changes
@@ -486,11 +561,7 @@ namespace SH
                 ViewBag.msg = "error";
 
             }
-
-
-
-
-
+            
             return View();
         }
 
@@ -501,13 +572,13 @@ namespace SH
 
 
 
-          //  IList<AspNetUsers> listi = lc.AspNetUsers.ToList<AspNetUsers>();
+            IList<AspNetUsers> listi = lc.AspNetUsers.ToList<AspNetUsers>();
 
 
 
-         //   foreach (var items in listi)
+               foreach (var items in listi)
             {
-              //  to = items.Email;
+                  to = items.Email;
                 body = "something issue with your appliances please contact technical team of smart home";
                 subject = "Issue in appliance";
 
@@ -605,7 +676,7 @@ namespace SH
                 return Redirect("/Account/Login");
             }
 
-                return View();
+            return View();
         }
 
 
@@ -662,6 +733,82 @@ namespace SH
 
             return View();
         }
+
+
+
+        [HttpGet]
+        public IActionResult users()
+        {
+            
+            return View();
+        }
+
+
+        [HttpPost]
+        public IActionResult users(Residents r, string[] box)
+        {
+            try
+            {
+
+                var claimsIdentity = (ClaimsIdentity)this.User.Identity;
+                var claim = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+                var userId = claim.Value;
+
+
+                r.Permission = String.Join(",", box);
+
+                lc.Residents.Add(r);
+
+                lc.SaveChanges();
+
+            }
+            catch
+            {
+                return Redirect("/Account/Login");
+            }
+
+
+
+            return View();
+        }
+
+        public IActionResult list()
+        {
+            IList<Room> room = lc.Room.ToList<Room>();
+            ViewBag.rm = room;
+            return View(ViewBag.rm);
+        }
+
+
+        [HttpGet]
+        public IActionResult userlogin()
+        {
+            return View();
+        }
+
+
+       [HttpPost]
+        public IActionResult userlogin(Residents r)
+        {
+           
+
+            Residents user = lc.Residents.Where(u => u.Username == r.Username && u.Password == r.Password).SingleOrDefault();
+            try { 
+
+            if (user.Username == r.Username && user.Password == r.Password)
+            {
+
+                    return RedirectToAction("othershowroom", "Home", new { arg = user.Id });
+                   
+            }
+            }
+            catch
+            {
+                return View("userlogin");
+            }
+            return View();
+        }
+
     }
 }
 
