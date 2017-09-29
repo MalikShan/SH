@@ -162,6 +162,8 @@ namespace SH.Models
                 entity.Property(e => e.Permission).HasMaxLength(50);
 
                 entity.Property(e => e.Username).HasMaxLength(50);
+
+                entity.Property(e => e.Usertype).HasMaxLength(50);
             });
 
             modelBuilder.Entity<Room>(entity =>
@@ -172,7 +174,8 @@ namespace SH.Models
                     .HasColumnName("name")
                     .HasMaxLength(50);
 
-                entity.Property(e => e.NoOfAppliances).HasColumnName("no of appliances");
+                
+                 entity.Property(e => e.NoOfAppliances).HasColumnName("no of appliances");
 
                 entity.Property(e => e.UserId).HasColumnName("user_id");
             });
@@ -202,6 +205,11 @@ namespace SH.Models
                 entity.Property(e => e.Request)
                     .HasColumnName("request")
                     .HasColumnType("datetime");
+
+
+                entity.Property(e => e.Timespan)
+                   .HasColumnName("timespan")
+                   .HasColumnType("datetime");
             });
         }
 

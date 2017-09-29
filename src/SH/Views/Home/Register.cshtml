@@ -1,0 +1,124 @@
+@model SH.Models.Residents
+
+
+
+@{
+    ViewData["Title"] = "Register";
+
+}
+
+@if (ViewBag.Message != null)
+{
+    @if (ViewBag.Message == "user already exists please select another one")
+    {
+        <div class="alert alert-danger" id="myDiv"> <span class="glyphicon glyphicon-user"></span><h4>@ViewBag.Message</h4> </div>
+    }
+
+    else
+    {
+        <div class="alert alert-success" id="myDiv"> <span class="glyphicon glyphicon-user"></span><h4>@ViewBag.Message</h4> </div>
+    }
+}
+
+
+
+
+<center><h2><strong>Add New User</strong></h2></center>
+
+&nbsp;&nbsp;
+
+<form asp-action="Register">
+    <div class="form-horizontal">
+
+
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <div class="form-group">
+            <label asp-for="Username" class="col-md-4 control-label"></label>
+            <div class="col-md-4">
+                <input asp-for="Username" class="form-control" required />
+                <span asp-validation-for="Username" class="text-danger" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="Email" class="col-md-4 control-label"></label>
+            <div class="col-md-4">
+                <input asp-for="Email" class="form-control" required />
+                <span asp-validation-for="Email" class="text-danger" />
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Password" class="col-md-4 control-label"></label>
+            <div class="col-md-4">
+                <input asp-for="Password" class="form-control" type="password" maxlength="6" required />
+                <span asp-validation-for="Password" class="text-danger" />
+            </div>
+        </div>
+
+
+
+
+        <div class="form-group">
+            <label asp-for="Permission" class="col-md-4 control-label"></label>
+
+
+
+            <div class="col-md-4" id="list">
+
+                @{
+
+                }
+
+            </div>
+        </div>
+
+
+        <div class="form-group">
+            <label asp-for="Usertype" class="col-md-4 control-label"></label>
+            <div class="col-md-4">
+                <input type="radio" name="usertype" value="Admin" checked />Admin
+                <input type="radio" name="usertype" value="Other" />Other
+            </div>
+        </div>
+
+
+
+
+
+        <div class="form-group">
+            <div class="col-md-offset-5 col-md-10">
+                <input type="submit" value="Add" class="btn btn-info" />
+            </div>
+        </div>
+    </div>
+</form>
+
+
+
+
+
+
+
+@section scripts
+{
+    <script>
+        $(function () {
+
+
+
+            $("#list").load("/Home/list");
+
+        });
+
+
+
+
+        $("#myDiv").fadeOut(4000);
+
+
+     
+</script>
+
+
+}

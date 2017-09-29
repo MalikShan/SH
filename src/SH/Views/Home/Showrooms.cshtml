@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Showrooms";
+   
 }
 
 <center><h3>All Rooms</h3></center>
@@ -33,11 +34,18 @@
                     @Html.DisplayFor(modelItem => item.NoOfAppliances)
                 </td>
 
+             
+           
+           
                 <td>
-                    <a href="/Home/Appliances?roomid=@item.Id" class="btn btn-success" data-toggle="tooltip" title="Add new Appliance"><i class="fa fa-plus-circle  fa-2x" aria-hidden="true"></i></a>
-                    <a href="/Home/ShowAppliances?roomid=@item.Id" class="btn btn-success" data-toggle="tooltip" title="Show all Appliances"><i class="fa fa-lightbulb-o fa-2x" aria-hidden="true"></i></a>
+                    <a href="/Home/Appliances?roomid=@item.Id" class="btn btn-info" data-toggle="tooltip" title="Add new Appliance"><i class="fa fa-plus-circle  fa-2x" aria-hidden="true"></i></a>
+                    <a href="/Home/ShowAppliances?roomid=@item.Id" class="btn btn-info" data-toggle="tooltip" title="Show all Appliances"><i class="fa fa-lightbulb-o fa-2x" aria-hidden="true"></i></a>
                 </td>
+            
+           
+
             </tr>
+
         }
     </tbody>
 </table>

@@ -1,0 +1,47 @@
+@model IEnumerable<SH.Models.Residents>
+
+@{
+    ViewData["Title"] = "allusers";
+}
+
+<h2>All Users</h2>
+
+
+<table class="table">
+    <thead>
+        <tr>
+            
+            <th>
+                @Html.DisplayNameFor(model => model.Username)
+            </th>
+            
+           
+            <th>
+                @Html.DisplayNameFor(model => model.Permission)
+            </th>
+            
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            
+            <td>
+                @Html.DisplayFor(modelItem => item.Username)
+            </td>
+            
+            
+            <td>
+                @Html.DisplayFor(modelItem => item.Permission)
+            </td>
+           
+            <td>
+                <a href="/Home/Edituser?Id=@item.Id" class="btn-xs btn-info">Edit</a>
+
+                <a href="/Home/Deleteuser?Id=@item.Id" class="btn-xs btn-info">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

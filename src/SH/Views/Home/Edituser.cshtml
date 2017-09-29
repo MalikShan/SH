@@ -1,20 +1,41 @@
 @model SH.Models.Residents
 
-
-
 @{
-    ViewData["Title"] = "users";
-
+    ViewData["Title"] = "Edituser";
 }
 
-<h2>Add a User</h2>
 
-<form asp-action="users">
+@if (ViewBag.Message != null)
+{
+    @if (ViewBag.Message == "User is successfully registered.")
+    {
+        <div class="alert alert-success" id="myDiv"> <span class="glyphicon glyphicon-user"></span><h4>@ViewBag.Message</h4> </div>
+    }
+
+    else
+    {
+        <div class="alert alert-danger"> <span class="glyphicon glyphicon-user"></span><h4>@ViewBag.Message</h4> </div>
+    }
+}
+
+
+
+
+<h2>Edit User</h2>
+
+<form asp-action="Edituser">
     <div class="form-horizontal">
        
-        <hr />
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
         
+        <div class="form-group" hidden>
+            <label asp-for="Id" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="Id" class="form-control" />
+                <span asp-validation-for="Id" class="text-danger" />
+            </div>
+        </div>
+
         <div class="form-group">
             <label asp-for="Username" class="col-md-2 control-label"></label>
             <div class="col-md-10">
@@ -39,39 +60,44 @@
         
 
 
+        <div class="form-group">
+            <label asp-for="Permission" class="col-md-2 control-label"></label>
 
-                <div class="form-group">
-                    <label asp-for="Permission" class="col-md-2 control-label" ></label>
 
-                 
-                        
-        <div class="col-md-10" id="list">
 
-            @{
+            <div class="col-md-10" id="list">
 
-            }
+                @{
 
-                    </div>
-                </div>
+                }
+
+            </div>
         </div>
+
+
+        <div class="form-group">
+            <label asp-for="Usertype" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input type="radio" name="usertype" value="Admin" />Admin
+                <input type="radio" name="usertype" value="Other" />Other
+            </div>
+        </div>
+
+
 
 
 
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Add" class="btn btn-default" />
+                <input type="submit" value="Save" class="btn btn-default" />
             </div>
         </div>
-    
+    </div>
 </form>
 
 <div>
     <a asp-action="Index">Back to List</a>
 </div>
-
-
-
-
 
 @section scripts
 {
@@ -83,5 +109,15 @@
             $("#list").load("/Home/list");
 
         });
+
+
+
+
+        $("#myDiv").fadeOut(4000);
+
+
+
     </script>
+
+
 }

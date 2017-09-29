@@ -9,6 +9,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    
     <title>Smart Home | Dashboard</title>
     <!-- Tell the browser to be responsive to screen width -->
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
@@ -72,7 +73,7 @@
                 <!-- /.search form -->
                 <!-- sidebar menu: : style can be found in sidebar.less -->
                 <ul class="sidebar-menu" data-widget="tree">
-                    <li class="header">MAIN NAVIGATION</li>
+                    <li class="header"><h4>  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<font color="#ffffff">Welcome : @ViewData["username"]</font> </h4></li>
                     <li class="active treeview">
                         <a href="#">
                             <i class="fa fa-home"></i> <span>Rooms Management</span>
@@ -101,8 +102,29 @@
 
                         </ul>
                     </li>
-                    <li>
+
+
+                    <li class="treeview">
                         <a href="#">
+                            <i class="fa fa-user-circle"></i>
+                            <span>User Management</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li><a asp-area="" asp-controller="Home" asp-action="Register"><i class="fa fa-user-circle"></i> Add New User</a></li>
+                            <li><a asp-area="" asp-controller="Home" asp-action="allusers"><i class="fa fa-user-circle"></i> View All Users</a></li>
+
+                        </ul>
+                    </li>
+
+
+
+
+
+                    <li>
+                        <a href="/Home/Contact">
                             <i class="fa fa-laptop"></i>
                             <span>View Report</span>
                             <span class="pull-right-container">
@@ -112,10 +134,12 @@
 
                     </li>
 
+                   
+
                     <li>
-                        <a href="/Home/users">
-                            <i class="fa fa-laptop"></i>
-                            <span>Add New User</span>
+                        <a href="/Home/Logout">
+                            <i class="fa fa-user"></i>
+                            <span>Log Out</span>
                             <span class="pull-right-container">
                                 <i class="fa fa-angle-left pull-right"></i>
                             </span>

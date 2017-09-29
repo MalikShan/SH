@@ -14,10 +14,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using System.Net.Mail;
 using Microsoft.AspNetCore.Http;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Collections;
 
 namespace SH
 {
-
+   
     public class HomeController : Controller
     {
         public smarthomeContext lc = null;
@@ -30,79 +33,409 @@ namespace SH
 
         public IActionResult Index()
         {
-            return Redirect("/Account/Login");
+            return RedirectToAction("Login");
+
+        }
+
+
+        #region register and login logout
+
+        [HttpGet]
+        public IActionResult Register()
+        {
+            return View();
+        }
+
+
+        [HttpPost]
+        public IActionResult Register(Residents u, string[] box )
+        {
+            if (ModelState.IsValid)
+            {
+                if (u.Usertype == "Other")
+                {
+
+                    u.Permission = String.Join(",", box);
+                    if (string.IsNullOrEmpty(u.Permission))
+                    {
+                        lc.Residents.Remove(u);
+
+                        ModelState.Clear();
+                        ModelState.AddModelError("", "you need to select permission for Other user");
+
+                    }
+
+
+
+                    else
+                    {
+
+
+
+
+                        string email = u.Email;
+                        Regex regex = new Regex(@"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$");
+                        Match match = regex.Match(email);
+                        if (match.Success)
+                        {
+
+                            u.Email = match.ToString();
+
+
+                            string strmsg = string.Empty;
+                            byte[] encode = new byte[u.Password.Length];
+                            encode = Encoding.UTF8.GetBytes(u.Password);
+                            strmsg = Convert.ToBase64String(encode);
+                            u.Password = strmsg;
+
+
+
+                            lc.Residents.Add(u);
+
+                            var foo = lc.Residents.Where(v => v.Username == u.Username).ToList();
+                            var foocount = foo.Count();
+                            if (foocount == 0)
+                            {
+                                lc.SaveChanges();
+                                ModelState.Clear();
+                                ViewBag.Message = "User is successfully registered.";
+                            }
+
+                            else
+                            {
+                                ModelState.Clear();
+                                ViewBag.Message = "user already exists please select another one";
+                            }
+
+
+                        }
+
+                        else
+                        {
+                            ModelState.AddModelError("", "incorrect email format correct format is abc@domain.com");
+                        }
+
+                    }
+                }
+            }
+            //var addr = new System.Net.Mail.MailAddress(u.Email);
+            //string aa = addr.Address;
+
+
+            //string decryptpwd = string.Empty;
+            //UTF8Encoding encodepwd = new UTF8Encoding();
+            //Decoder Decode = encodepwd.GetDecoder();
+            //byte[] todecode_byte = Convert.FromBase64String(strmsg);
+            //int charCount = Decode.GetCharCount(todecode_byte, 0, todecode_byte.Length);
+            //char[] decoded_char = new char[charCount];
+            //Decode.GetChars(todecode_byte, 0, todecode_byte.Length, decoded_char, 0);
+            //decryptpwd = new String(decoded_char);
+
+            //TempData["dcr"] = decryptpwd;
+
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult Login()
+        {
+            if(HttpContext.Session.GetString("Id") == null)
+            {
+                return View();
+            }
+            else
+            {
+                if (HttpContext.Session.GetString("Usertype") == "Admin")
+                { 
+                    return View("dashoboard");
+                }
+
+                else
+                {
+                    return RedirectToAction("othershowroom", new { arg = HttpContext.Session.GetString("Id") });
+                }
+
+            }
+
+           
+        }
+
+        [HttpPost]
+        public IActionResult Login(Residents user)
+        {
+
+            string strmsg = string.Empty;
+            byte[] encode = new byte[user.Password.Length];
+            encode = Encoding.UTF8.GetBytes(user.Password);
+            strmsg = Convert.ToBase64String(encode);
+
+
+            var account = lc.Residents.Where(u => u.Username == user.Username && u.Password == strmsg).FirstOrDefault();
+            if (account != null)
+            {
+
+                HttpContext.Session.SetString("Id", account.Id.ToString());
+                HttpContext.Session.SetString("Username", account.Username);
+                HttpContext.Session.SetString("Usertype", account.Usertype);
+                if (account.Usertype == "Admin")
+                {
+                   
+                    return RedirectToAction("dashoboard");
+                }
+                else
+                {
+                    return RedirectToAction("othershowroom", new { arg = account.Id });
+                }
+            }
+            else
+            {
+                ModelState.AddModelError("", "Username or password is incorrect");
+            }
+            return View();
+        }
+
+
+        
+        public IActionResult logout()
+        {
+            if(HttpContext.Session.GetString("Id") != null)
+            {
+
+                HttpContext.Session.Clear();
+                return RedirectToAction("Login");
+            }
+            else
+            {
+                return RedirectToAction("Login");
+            }
 
         }
 
 
 
+        #endregion
+
+
+        #region all users edit and delete
+        public IActionResult allusers()
+        {
+            if (HttpContext.Session.GetString("Id") != null)
+            {
+
+                IList<Residents> list = lc.Residents.Where(u => u.Usertype == "Other").ToList<Residents>();
+                return View(list);
+            }
+            else
+            {
+                return RedirectToAction("Login");
+            }
+        }
+
+        [HttpGet]
+        public IActionResult Edituser(int Id)
+        {
+            if (HttpContext.Session.GetString("Id") != null)
+            {
+                Residents obj = lc.Residents.Where(c => c.Id == Id).SingleOrDefault();
+                return View(obj);
+            }
+            else
+            {
+                return RedirectToAction("Login");
+            }
+        }
+
+        [HttpPost]
+        public IActionResult Edituser(Residents r, string[] box)
+        {
+
+            if (ModelState.IsValid)
+            {
+                r.Permission = String.Join(",", box);
+                string strmsg = string.Empty;
+                byte[] encode = new byte[r.Password.Length];
+                encode = Encoding.UTF8.GetBytes(r.Password);
+                strmsg = Convert.ToBase64String(encode);
+                r.Password = strmsg;
+                lc.Entry(r).State = EntityState.Modified;
+                lc.SaveChanges();
+                ModelState.Clear();
+                ViewBag.Message = "User is successfully edited.";
+            }
+            return View(r);
+        }
+
+
+        public IActionResult Deleteuser(int Id)
+        {
+            if (HttpContext.Session.GetString("Id") != null)
+            {
+                Residents obj = lc.Residents.Where(s => s.Id == Id).SingleOrDefault();
+                lc.Residents.Remove(obj);
+                lc.SaveChanges();
+                return RedirectToAction("allusers");
+            }
+            else
+            {
+                RedirectToAction("Login");
+            }
+            return View();
+        }
+        #endregion
+
+
+
+
+        #region add room
+
         [HttpGet]
         public IActionResult Room()
         {
-            return View();
+            if (HttpContext.Session.GetString("Id") != null)
+            {
+                return View();
+            }
+            else
+            {
+                return RedirectToAction("Login");
+            }
         }
         [HttpPost]
         public IActionResult Room(Room c)
         {
 
-            try
-            {
+            var id = HttpContext.Session.GetString("Id");
+            var account = lc.Residents.Where(u => u.Id.ToString() == id).SingleOrDefault();
 
-                var claimsIdentity = (ClaimsIdentity)this.User.Identity;
-                var claim = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-                var userId = claim.Value;
-
-
-
-                lc.Room.Add(c);
-
-                c.UserId = userId;
-
-                var foo = lc.Room.Where(v => v.Name == c.Name);
-                var foocount = foo.Count();
-                if (foocount == 0)
+            if (account.Usertype == "Admin")
                 {
-                    lc.SaveChanges();
-                    ViewBag.Message = "Successfully Saved";
-                    return View();
+
+
+                    lc.Room.Add(c);
+                    c.UserId = account.Id.ToString();
+
+
+                    var foo = lc.Room.Where(v => v.Name == c.Name);
+                    var foocount = foo.Count();
+                    if (foocount == 0)
+                    {
+                        lc.SaveChanges();
+                        ViewBag.Message = "Successfully Saved";
+                    ModelState.Clear();
+                        return View();
+                    }
+
+                    else
+                    {
+                        ViewBag.Message = "room already entered please select another one";
+                    }
                 }
 
-                else
-                {
-                    ViewBag.Message = "room already entered please select another one";
-                }
-
-
-                return View();
-            }
-            catch
+             
+            else
             {
-
-                return Redirect("/Account/Login");
+                return RedirectToAction("Login");
             }
+            return View();
+        }
 
+        #endregion
+
+        #region showrooms one for admin and second for other users
+
+        public IActionResult Showrooms()
+        {
+            if (HttpContext.Session.GetString("Id") != null)
+            {
+                var id = HttpContext.Session.GetString("Id");
+                var account = lc.Residents.Where(u=>u.Id.ToString()==id).SingleOrDefault();
+                if (account.Usertype == "Admin")
+                {
+
+
+                    IList<Room> list = lc.Room.ToList<Room>();
+
+                    return View(list);
+
+                }
+            }
+            else
+            {
+                return RedirectToAction("Login");
+            }
+            
+            return View();
         }
 
 
+        public IActionResult othershowroom(int arg)
+        {
+            if (HttpContext.Session.GetString("Id") != null)
+            {
+
+                IList<Room> filtered = new List<Room>();
+
+
+                Residents user = lc.Residents.Where(u => u.Id == arg).SingleOrDefault();
+
+                if (user.Id == arg)
+                {
+
+                    IList<Room> rooms = lc.Room.ToList<Room>();
+
+                    foreach (var items in rooms)
+                    {
+                        if (user.Permission.Contains(items.Name))
+                        {
+                            filtered.Add(items);
+
+                        }
+
+
+                    }
+                }
+                return View(filtered);
+            }
+            else
+            {
+                return RedirectToAction("Login");
+            }
+
+            
+        }
+
+        #endregion
+
+
+
+        #region add and show appliances
 
         [HttpGet]
         public IActionResult Appliances(int roomid)
         {
-            ViewBag.id = roomid;
-            return View();
+            if (HttpContext.Session.GetString("Id") != null)
+            {
+                ViewBag.id = roomid;
+                return View();
+            }
+            else
+            {
+                return RedirectToAction("Login");
+            }
         }
 
         [HttpPost]
         public IActionResult Appliances(Appliances c, int rid, string appliances)
         {
 
-            try
+
+         string id =   HttpContext.Session.GetString("Id");
+
+
+           var account = lc.Residents.Where(u=>u.Id.ToString()==id).SingleOrDefault();
+
+            if (account.Usertype == "Admin")
             {
-
-                var claimsIdentity = (ClaimsIdentity)this.User.Identity;
-                var claim = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-                var userId = claim.Value;
-
 
 
                 c.Name = appliances;
@@ -119,32 +452,232 @@ namespace SH
                 c.RoomId = b_obj.Id;
 
 
-                b_obj.NoOfAppliances++;
-
+                //one issue
+               b_obj.NoOfAppliances++;
+                
 
                 lc.SaveChanges();
                 ViewBag.Message = "Successfully Saved";
                 return View();
             }
-            catch
-            {
-
-                return Redirect("/Account/Login");
-            }
+            return View();
 
         }
 
 
         public IActionResult ShowAppliances(int roomid)
         {
+            if (HttpContext.Session.GetString("Id") != null)
+            {
+                IList<Appliances> list = lc.Appliances.Where(u => u.RoomId == roomid).ToList<Appliances>();
 
-            IList<Appliances> list = lc.Appliances.Where(u => u.RoomId == roomid).ToList<Appliances>();
-
-            return View(list);
+                return View(list);
+            }
+            else
+            {
+                return RedirectToAction("Login");
+            }
         }
 
 
+        #endregion
 
+
+
+        #region Arduino REquests
+        public IActionResult AddTransaction(int id)
+        {
+            // When user hit on app icon,transaction table me request create hoge 
+            // chk current status of app from appliances table and prepare responce againts according to current tatus(Opposite)
+
+            Transaction t1 = new Transaction();
+            t1.Request = System.DateTime.Now;
+            t1.AppId = id;
+            t1.Day = DateTime.Now.DayOfWeek.ToString();
+           
+            Appliances app = new Appliances();
+            app = lc.Appliances.Where(m => m.Id == id).SingleOrDefault();
+            ViewBag.AppStatus = app.Status;
+            string Action = "";
+            if (app.Status != "ON")
+            {
+                Action = "1";
+                t1.Action = "ON";
+            }
+            else
+            {
+                t1.Action = "OFF";
+                Action = "0";
+            }
+            lc.Transaction.Add(t1);
+            lc.SaveChanges();
+
+            try
+            {
+
+                Uri myurl = new Uri("http://192.168.43.101/gpio" + id + "/" + Action);
+                WebClient wcl = new WebClient();
+                var content = wcl.DownloadString(myurl);
+            }
+
+            catch
+            {
+                return View();
+            }
+
+            return View();
+        }
+        public IActionResult DATAFORARD()
+        {
+            //step 2 arduino hit this action
+
+
+            //TRYCATCH
+            Transaction obj = lc.Transaction.Where(u => u.Permission == null && u.Inspect == null).FirstOrDefault<Transaction>();
+            Appliances appobj = lc.Appliances.Where(u => u.Id == obj.AppId).SingleOrDefault();
+
+            obj.Permission = DateTime.Now.ToString();
+
+            if (obj.Action == "OFF")
+            {
+                IList<Transaction> olist = lc.Transaction.Where(m => m.Action == "ON" && m.AppId == obj.AppId).OrderByDescending(m => m.Id).ToList();
+                var obj2 = olist.FirstOrDefault();
+                DateTime startTime= Convert.ToDateTime(obj.Request);
+                DateTime EndTime = Convert.ToDateTime(obj2.Request);
+                TimeSpan time =startTime-EndTime;
+                obj.Timespan = Convert.ToDateTime(time);
+            }
+
+
+            if (appobj.Status != "ON")
+            {
+                appobj.Status = "ON";
+            }
+            else
+            {
+                appobj.Status = "OFF";
+            }
+
+            lc.Entry(appobj).State = EntityState.Modified;
+            lc.Entry(obj).State = EntityState.Modified;
+            lc.SaveChanges();
+            return Json("Done");
+        }
+
+
+        #endregion
+
+
+
+        #region dashboard
+        public IActionResult dashoboard()
+        {
+
+            if (HttpContext.Session.GetString("Id") != null)
+            {
+
+                IList<Room> list = lc.Room.ToList<Room>();
+                ViewData["roomCount"] = list.Count;
+
+                IList<Appliances> lista = lc.Appliances.ToList<Appliances>();
+                ViewData["appCount"] = lista.Count;
+
+                IList<Residents> listu = lc.Residents.ToList<Residents>();
+                ViewData["userpCount"] = listu.Count;
+
+                
+                return View();
+            }
+            else
+            {
+                return RedirectToAction("Login");
+            }
+        }
+
+        #endregion
+
+
+        #region graph
+
+        public IActionResult seegraph()
+        {
+
+            IList<Room> listi = lc.Room.ToList<Room>();
+            for (var i = 0; i < listi.Count; i++)
+            {
+
+
+
+                if (i == 0)
+                {
+                    ViewBag.a = listi[i].Name;
+                    ViewBag.aa = listi[i].NoOfAppliances;
+                }
+                if (i == 1)
+                {
+                    ViewBag.b = listi[i].Name;
+                    ViewBag.bb = listi[i].NoOfAppliances;
+                }
+                if (i == 2)
+                {
+                    ViewBag.c = listi[i].Name;
+                    ViewBag.cc = listi[i].NoOfAppliances;
+                }
+                if (i == 3)
+                {
+                    ViewBag.d = listi[i].Name;
+                    ViewBag.dd = listi[i].NoOfAppliances;
+                }
+                if (i == 4)
+                {
+                    ViewBag.e = listi[i].Name;
+                    ViewBag.ee = listi[i].NoOfAppliances;
+                }
+                if (i == 5)
+                {
+                    ViewBag.f = listi[i].Name;
+                    ViewBag.ff = listi[i].NoOfAppliances;
+                }
+
+
+            }
+            if (ViewBag.a == null)
+            {
+                ViewBag.a = 0;
+                ViewBag.aa = 0;
+
+            }
+            if (ViewBag.b == null)
+            {
+                ViewBag.b = 0;
+                ViewBag.bb = 0;
+            }
+            if (ViewBag.c == null)
+            {
+                ViewBag.c = 0;
+                ViewBag.cc = 0;
+            }
+            if (ViewBag.d == null)
+            {
+                ViewBag.d = 0;
+                ViewBag.dd = 0;
+            }
+            if (ViewBag.e == null)
+            {
+                ViewBag.e = 0;
+                ViewBag.ee = 0;
+            }
+            if (ViewBag.f == null)
+            {
+                ViewBag.f = 0;
+                ViewBag.ff = 0;
+            }
+
+
+            return View();
+
+
+        }
         public IActionResult Chart()
         {
 
@@ -260,309 +793,37 @@ namespace SH
 
         }
 
-
-          public IActionResult Showrooms()
-        {
-
-            try { 
-            var claimsIdentity = (ClaimsIdentity)this.User.Identity;
-            var claim = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-            var userId = claim.Value;
-
-            
-            AspNetUsers admin = lc.AspNetUsers.Where(u=> u.Id == userId).SingleOrDefault<AspNetUsers>();
-            if(admin.Email == "shan4924@gmail.com")
-            {
-                    IList<Room> list = lc.Room.ToList<Room>();
-
-                    return View(list);
-                    
-            }
-
-            }
-            catch
-            {
-
-                return Redirect("/Account/Login");
-            }
-       
-
-        //// object of loged in user
-        ////user.permission
-        //IList<Room> filtered = new List<Room>();
-        //IList<Room> list = lc.Room.ToList<Room>();
-
-        ////if (User.email == firt)
-        ////{
-        ////    return
-        ////}
-
-        //foreach (var item in list)
-        //{
-        //    if (Permission.contain(item.Name))
-        //    {
-        //        filtered.Add(item);
-
-        //    }
-
-        //}
-
-
-         return View();
-        }
-
-
+        #endregion
 
        
 
 
-        public IActionResult othershowroom(int arg)
-        {
-            IList<Room> filtered = new List<Room>();
-            Residents user = lc.Residents.Where(u => u.Id == arg).SingleOrDefault();
-
-            if (user.Id == arg)
-            {
-                //login user ki id lani ha abhi
-                // resident wali b sinle lost ai ha then id match then ik loop htm
-
-                
-                
-                IList<Room> rooms = lc.Room.ToList<Room>();
-
-                foreach (var items in rooms)
-                {
-                    if (user.Permission.Contains(items.Name))
-                    {
-                        filtered.Add(items);
-
-                    }
-
-
-                }
-            }
-
-            else
-            {
-                return Redirect("/Home/userlogin");
-            }
-
-            return View(filtered);
-        }
-
-
-        public IActionResult dashoboard()
-        {
-            IList<Room> list = lc.Room.ToList<Room>();
-            ViewData["roomCount"] = list.Count;
-
-            IList<Appliances> lista = lc.Appliances.ToList<Appliances>();
-            ViewData["appCount"] = lista.Count;
-
-            IList<AspNetUsers> listu = lc.AspNetUsers.ToList<AspNetUsers>();
-            ViewData["userpCount"] = listu.Count;
-
-            return View();
-        }
-
-
-        public IActionResult seegraph()
-        {
-
-            IList<Room> listi = lc.Room.ToList<Room>();
-            for (var i = 0; i < listi.Count; i++)
-            {
-
-
-
-                if (i == 0)
-                {
-                    ViewBag.a = listi[i].Name;
-                    ViewBag.aa = listi[i].NoOfAppliances;
-                }
-                if (i == 1)
-                {
-                    ViewBag.b = listi[i].Name;
-                    ViewBag.bb = listi[i].NoOfAppliances;
-                }
-                if (i == 2)
-                {
-                    ViewBag.c = listi[i].Name;
-                    ViewBag.cc = listi[i].NoOfAppliances;
-                }
-                if (i == 3)
-                {
-                    ViewBag.d = listi[i].Name;
-                    ViewBag.dd = listi[i].NoOfAppliances;
-                }
-                if (i == 4)
-                {
-                    ViewBag.e = listi[i].Name;
-                    ViewBag.ee = listi[i].NoOfAppliances;
-                }
-                if (i == 5)
-                {
-                    ViewBag.f = listi[i].Name;
-                    ViewBag.ff = listi[i].NoOfAppliances;
-                }
-
-
-            }
-            if (ViewBag.a == null)
-            {
-                ViewBag.a = 0;
-                ViewBag.aa = 0;
-
-            }
-            if (ViewBag.b == null)
-            {
-                ViewBag.b = 0;
-                ViewBag.bb = 0;
-            }
-            if (ViewBag.c == null)
-            {
-                ViewBag.c = 0;
-                ViewBag.cc = 0;
-            }
-            if (ViewBag.d == null)
-            {
-                ViewBag.d = 0;
-                ViewBag.dd = 0;
-            }
-            if (ViewBag.e == null)
-            {
-                ViewBag.e = 0;
-                ViewBag.ee = 0;
-            }
-            if (ViewBag.f == null)
-            {
-                ViewBag.f = 0;
-                ViewBag.ff = 0;
-            }
-
-
-            return View();
-
-
-        }
-
-
-        public IActionResult AddTransaction(int id)
-        {
-            //step 1 
-            // data came from applainces table on click action 
-            Appliances app = new Appliances();
-            Transaction t1 = new Transaction();
-            t1.Request = System.DateTime.Now;
-            t1.AppId = id;
-            t1.Day = DateTime.Now.DayOfWeek.ToString();
-            lc.Transaction.Add(t1);
-            lc.SaveChanges();
-
-
-            var obj = lc.Appliances.Where(m => m.Id == id).FirstOrDefault();
-            ViewBag.AppStatus = obj.Status;
-            return View();
-
-        }
-
-
-
-        public IActionResult DATAFORARD()
-        {
-            //step 2 arduino hit this action
-
-
-            //TRYCATCH
-            Transaction obj = lc.Transaction.Where(u => u.Permission == null && u.Inspect == null).FirstOrDefault<Transaction>();
-            Appliances appobj = lc.Appliances.Where(u => u.Id == obj.AppId).SingleOrDefault();
-            string requestToArduino = "";
-
-            if (appobj.Status == "OFF")
-            {
-                //update appliance statu on
-                //  appobj.Status = "ON";
-                // obj.Action = "ON";
-                ///lc.Entry(appobj).State = EntityState.Modified;
-                //lc.SaveChanges();
-
-                requestToArduino = obj.AppId + "ON";
-
-            }
-
-            else
-            {
-                //appobj.Status = "OFF";
-                //obj.Action = "OFF";
-                //lc.Entry(appobj).State = EntityState.Modified;
-                //lc.SaveChanges();
-                requestToArduino = obj.AppId + "OFF";
-            }
-
-            lc.Entry(obj).State = EntityState.Modified;
-            lc.SaveChanges();
-            return Json(requestToArduino);
-        }
-
-        [HttpGet]
-        public IActionResult arduinoPermission()
-        {
-            //step 3 arduino permission de ga enter data in transaction table where permission was null
-
-            Transaction T1 = new Transaction();
-            T1 = lc.Transaction.Where(M => M.Action == null && M.Permission == null && M.Inspect == null).FirstOrDefault<Transaction>();
-            Appliances appobj = lc.Appliances.Where(u => u.Id == T1.AppId).SingleOrDefault();
-            // ACTION 2 MEAN IS KO ARDUINO SE PERMISSION MILL GAYE HA
-
-
-            if (appobj.Status == "OFF")
-            {
-                //update appliance statu on
-                appobj.Status = "ON";
-                T1.Action = "1";
-                T1.Permission = System.DateTime.Now.ToString();
-                lc.Entry(appobj).State = EntityState.Modified;
-                lc.Entry(T1).State = EntityState.Modified;
-
-                lc.SaveChanges();
-
-
-            }
-
-            else
-            {
-                appobj.Status = "OFF";
-                T1.Action = "0";
-                T1.Permission = System.DateTime.Now.ToString();
-                lc.Entry(appobj).State = EntityState.Modified;
-                lc.Entry(T1).State = EntityState.Modified;
-
-                lc.SaveChanges();
-            }
-
-
-            return View();
-        }
-
+        #region email
 
         public IActionResult email()
         {
-
-            IList<Transaction> list = lc.Transaction.Where(u => u.Permission == null && u.Inspect == null).ToList<Transaction>();
-
-            //require changes
-            if (list.Count >= 2)
+            if (HttpContext.Session.GetString("Id") != null)
             {
-                return RedirectToAction("Sendemail");
-            }
+                IList<Transaction> list = lc.Transaction.Where(u => u.Permission == null && u.Inspect == null).ToList<Transaction>();
 
+                //require changes
+                if (list.Count >= 2)
+                {
+                    return RedirectToAction("Sendemail");
+                }
+
+                else
+                {
+                    ViewBag.msg = "error";
+
+                }
+
+                return View();
+            }
             else
             {
-                ViewBag.msg = "error";
-
+                return RedirectToAction("Login");
             }
-            
-            return View();
         }
 
 
@@ -572,7 +833,7 @@ namespace SH
 
 
 
-            IList<AspNetUsers> listi = lc.AspNetUsers.ToList<AspNetUsers>();
+            IList<Residents> listi = lc.Residents.ToList<Residents>();
 
 
 
@@ -627,190 +888,43 @@ namespace SH
 
         }
 
-        public IActionResult minustest(int id)
-        {
 
-            string a = null;
-            string on = null;
-
-
-
-            IList<Transaction> toff = lc.Transaction.Where(u => u.Action == "1" && u.AppId == id && u.Day == "Sunday").ToList<Transaction>();
-            foreach (var item in toff)
-            {
-                a = item.Permission;
-                DateTime ofDate = Convert.ToDateTime(a);
-                ViewBag.off = ofDate;
-            }
-            IList<Transaction> ton = lc.Transaction.Where(u => u.Action == "0" && u.AppId == id && u.Day == "Sunday").ToList<Transaction>();
-            foreach (var item in ton)
-            {
-                on = item.Permission;
-                DateTime onDate = Convert.ToDateTime(on);
-                ViewBag.on = onDate;
-            }
-
-
-            TimeSpan final = ViewBag.on - ViewBag.off;
-
-            ViewBag.msg = final;
+        #endregion
 
 
 
 
-
-            return View();
-        }
+       
 
         public IActionResult Contact()
         {
-            try
+            if (HttpContext.Session.GetString("Id") != null)
             {
 
-                var claimsIdentity = (ClaimsIdentity)this.User.Identity;
-                var claim = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-                var userId = claim.Value;
+                return View();
             }
-            catch
+            else
             {
-                return Redirect("/Account/Login");
+                return RedirectToAction("Login");
             }
-
-            return View();
         }
 
-
-
-        public IActionResult Checkaurd()
-        {
-            IList<Appliances> list = lc.Appliances.Where(u => u.Status == "ON" || u.Status == "OFF").ToList<Appliances>();
-
-
-            return View();
-        }
-
-
-        public IActionResult ardchk(string to, string subject, string body)
-        {
-
-            to = "smarthome327@gmail.com";
-            body = "something issue with appliances of ";
-            subject = "Issue in appliance";
-
-            MailMessage omailmessage = new MailMessage();
-            omailmessage.From = new MailAddress("smarthome327@gmail.com");
-            omailmessage.To.Add(to);
-            omailmessage.Body = body;
-            omailmessage.Subject = subject;
-            omailmessage.IsBodyHtml = true;
-            SmtpClient osmtpclient = new SmtpClient("smtp.gmail.com", 587);
-            osmtpclient.EnableSsl = true;
-            osmtpclient.UseDefaultCredentials = true;
-            osmtpclient.Credentials = new NetworkCredential("smarthome327@gmail.com", "Smart_327");
-            osmtpclient.Send(omailmessage);
-
-            return View();
-
-
-        }
-
-        public IActionResult demo()
-        {
-            Uri myuri = new Uri("Http://192.168.1.101/gpio3/1");
-
-            HttpWebRequest myreq = (HttpWebRequest)WebRequest.Create(myuri);
-            WebResponse webres = myreq.GetResponse();
-
-            return View();
-
-        }
-
-
-
-        public IActionResult highchrt()
-        {
-
-
-            return View();
-        }
-
-
-
-        [HttpGet]
-        public IActionResult users()
-        {
-            
-            return View();
-        }
-
-
-        [HttpPost]
-        public IActionResult users(Residents r, string[] box)
-        {
-            try
-            {
-
-                var claimsIdentity = (ClaimsIdentity)this.User.Identity;
-                var claim = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-                var userId = claim.Value;
-
-
-                r.Permission = String.Join(",", box);
-
-                lc.Residents.Add(r);
-
-                lc.SaveChanges();
-
-            }
-            catch
-            {
-                return Redirect("/Account/Login");
-            }
-
-
-
-            return View();
-        }
+   
 
         public IActionResult list()
         {
             IList<Room> room = lc.Room.ToList<Room>();
             ViewBag.rm = room;
             return View(ViewBag.rm);
-        }
 
-
-        [HttpGet]
-        public IActionResult userlogin()
-        {
-            return View();
-        }
-
-
-       [HttpPost]
-        public IActionResult userlogin(Residents r)
-        {
            
-
-            Residents user = lc.Residents.Where(u => u.Username == r.Username && u.Password == r.Password).SingleOrDefault();
-            try { 
-
-            if (user.Username == r.Username && user.Password == r.Password)
-            {
-
-                    return RedirectToAction("othershowroom", "Home", new { arg = user.Id });
-                   
-            }
-            }
-            catch
-            {
-                return View("userlogin");
-            }
-            return View();
         }
 
+       
+
+
+        }
     }
-}
 
 
 

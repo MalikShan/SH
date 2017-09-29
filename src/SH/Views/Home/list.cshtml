@@ -11,16 +11,12 @@
     IList<Room> rooms = ViewBag.rm;
 }
 
-<form asp-action="users">
+<form asp-action="Register">
 
     @foreach (var item in rooms)
     {
 
-        
-
-
-
-
+      
        @item.Name <input type="checkbox" value="@item.Name" name="box" />
 
      

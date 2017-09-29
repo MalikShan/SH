@@ -58,6 +58,8 @@ namespace SH
                 .AddDefaultTokenProviders();
 
             services.AddMvc();
+            services.AddDistributedMemoryCache();
+            services.AddSession();
 
             // Add application services.
             services.AddTransient<IEmailSender, AuthMessageSender>();
@@ -86,7 +88,7 @@ namespace SH
             app.UseApplicationInsightsExceptionTelemetry();
 
             app.UseStaticFiles();
-            
+            app.UseSession();
             app.UseIdentity();
 
             // Add external authentication middleware below. To configure them please see http://go.microsoft.com/fwlink/?LinkID=532715
