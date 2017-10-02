@@ -534,6 +534,91 @@ namespace SH
 
 
         #region Arduino REquests
+        // old region
+        //public IActionResult AddTransaction(int id)
+        //{
+        //    // When user hit on app icon,transaction table me request create hoge 
+        //    // chk current status of app from appliances table and prepare responce againts according to current tatus(Opposite)
+
+        //    Transaction t1 = new Transaction();
+        //    t1.Request = System.DateTime.Now;
+        //    t1.AppId = id;
+        //    t1.Day = DateTime.Now.DayOfWeek.ToString();
+
+        //    Appliances app = new Appliances();
+        //    app = lc.Appliances.Where(m => m.Id == id).SingleOrDefault();
+        //    ViewBag.AppStatus = app.Status;
+        //    string Action = "";
+        //    if (app.Status != "ON")
+        //    {
+        //        Action = "1";
+        //        t1.Action = "ON";
+        //    }
+        //    else
+        //    {
+        //        t1.Action = "OFF";
+        //        Action = "0";
+        //    }
+        //    lc.Transaction.Add(t1);
+        //    lc.SaveChanges();
+
+        //    try
+        //    {
+
+        //        Uri myurl = new Uri("http://192.168.43.101/gpio" + id + "/" + Action);
+        //        WebClient wcl = new WebClient();
+        //        var content = wcl.DownloadString(myurl);
+        //    }
+
+        //    catch
+        //    {
+        //        return View();
+        //    }
+
+        //    return View();
+        //}
+        //public IActionResult DATAFORARD()
+        //{
+        //    //step 2 arduino hit this action
+
+
+        //    //TRYCATCH
+        //    Transaction obj = lc.Transaction.Where(u => u.Permission == null && u.Inspect == null).FirstOrDefault<Transaction>();
+        //    Appliances appobj = lc.Appliances.Where(u => u.Id == obj.AppId).SingleOrDefault();
+
+        //    obj.Permission = DateTime.Now.ToString();
+
+        //    if (obj.Action == "OFF")
+        //    {
+        //        IList<Transaction> olist = lc.Transaction.Where(m => m.Action == "ON" && m.AppId == obj.AppId).OrderByDescending(m => m.Id).ToList();
+        //        var obj2 = olist.FirstOrDefault();
+        //        DateTime startTime= Convert.ToDateTime(obj.Request);
+        //        DateTime EndTime = Convert.ToDateTime(obj2.Request);
+        //        TimeSpan time =startTime-EndTime;
+        //        obj.Timespan = Convert.ToDateTime(time);
+        //    }
+
+
+        //    if (appobj.Status != "ON")
+        //    {
+        //        appobj.Status = "ON";
+        //    }
+        //    else
+        //    {
+        //        appobj.Status = "OFF";
+        //    }
+
+        //    lc.Entry(appobj).State = EntityState.Modified;
+        //    lc.Entry(obj).State = EntityState.Modified;
+        //    lc.SaveChanges();
+        //    return Json("Done");
+        //}
+
+
+        #endregion
+
+        #region Arduino REquests
+            // new region
         public IActionResult AddTransaction(int id)
         {
             // When user hit on app icon,transaction table me request create hoge 
@@ -543,12 +628,13 @@ namespace SH
             t1.Request = System.DateTime.Now;
             t1.AppId = id;
             t1.Day = DateTime.Now.DayOfWeek.ToString();
-           
+
+
             Appliances app = new Appliances();
             app = lc.Appliances.Where(m => m.Id == id).SingleOrDefault();
             ViewBag.AppStatus = app.Status;
             string Action = "";
-            if (app.Status != "ON")
+            if (app.Status == "OFF")
             {
                 Action = "1";
                 t1.Action = "ON";
@@ -591,10 +677,11 @@ namespace SH
             {
                 IList<Transaction> olist = lc.Transaction.Where(m => m.Action == "ON" && m.AppId == obj.AppId).OrderByDescending(m => m.Id).ToList();
                 var obj2 = olist.FirstOrDefault();
-                DateTime startTime= Convert.ToDateTime(obj.Request);
-                DateTime EndTime = Convert.ToDateTime(obj2.Request);
-                TimeSpan time =startTime-EndTime;
-                obj.Timespan = Convert.ToDateTime(time);
+                DateTime startTime = Convert.ToDateTime(obj2.Request);
+                DateTime EndTime = Convert.ToDateTime(obj.Request);
+                TimeSpan time = EndTime - startTime;
+
+               // obj.Timespan = EndTime - startTime;
             }
 
 
@@ -615,8 +702,6 @@ namespace SH
 
 
         #endregion
-
-
 
         #region dashboard
         public IActionResult dashoboard()
