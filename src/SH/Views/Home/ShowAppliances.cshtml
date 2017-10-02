@@ -1,5 +1,5 @@
 @model IEnumerable<SH.Models.Appliances>
-
+@using Microsoft.AspNetCore.Http
 &nbsp;&nbsp;
 
 <style>
@@ -8,90 +8,94 @@
         padding-bottom: 20px;
     }
 </style>
-
+@{
+    int count = 0;
+}
 
 @foreach (Appliances A in Model)
 {
-
-
-
-
-
-
+    count++;
 
     <div class="container">
         <center>
             <div class="row">
 
-                <div class="col-xs-12">
-                    @if (A.Name == "AC" && A.Status == "ON")
+                <div class="col-xs-12" >
+                    @if (A.Name == "AC")
                     {
-                        <a href="/Home/AddTransaction?id=@A.Id" class="alert alert-success">
-                            <img src="~/images/air-conditioner.png" width="150" height="100" />
-                        </a>
+                        <div class="col-xs-9" >
+                            <a data-toggle="modal" data-target="#@count">
+                                <img src="~/images/air-conditioner.png" width="150" height="100" />
+
+                            </a>
+                        </div>
+                       
+                        <div class="col-xs-3 top-buffer">
+                            <div class="panel panel-default">
+                             <div class="panel-title">@A.Status</div>
+                            </div>
+                        </div>
                     }
 
-                    @if (A.Name == "AC" && A.Status == "OFF")
-                    {
-
-                        <a href="/Home/AddTransaction?id=@A.Id" class="alert alert-danger">
-                            <img src="~/images/air-conditioner.png" width="150" height="100" />
-                        </a>
-                    }
+                   
                 </div>
 
                 <div class="col-xs-12">
-                    @if (A.Name == "TV" && A.Status == "ON")
-                    {
-                        <a href="/Home/AddTransaction?id=@A.Id" class="alert alert-success">
-                            <img src="~/images/television.png" width="150" height="100" />
-                        </a>
-                    }
-
-                    @if (A.Name == "TV" && A.Status == "OFF")
-                    {
-
-                        <a href="/Home/AddTransaction?id=@A.Id" class="alert alert-danger">
-                            <img src="~/images/television.png" width="150" height="100" />
-                        </a>
-                    }
-                </div>
-
-                <div class="col-xs-12">
-                    @if (A.Name == "Bulb" && A.Status == "ON")
-                    {
-                        <a href="/Home/AddTransaction?id=@A.Id" class="alert alert-success">
-                            <img src="~/images/light-bulb.png" width="150" height="100" />
-                        </a>
-                    }
-
-                    @if (A.Name == "Bulb" && A.Status == "OFF")
-                    {
-
-                        <a href="/Home/AddTransaction?id=@A.Id" class="alert alert-danger">
-                            <img src="~/images/light-bulb.png" width="150" height="100" />
-                        </a>
-                    }
-                </div>
-
-
+                  
+                        @if (A.Name == "TV")
+                        {
+                            <div class="col-xs-9">
+                                <a data-toggle="modal" data-target="#@count">
+                                    <img src="~/images/television.png" width="150" height="100" />
+                                </a>
+                                
+                            </div>
+                    <div class="col-xs-3 top-buffer">
+                        <div class="panel panel-default">
+                            <div class="panel-title">@A.Status</div>
+                        </div>
+                    </div>
+                        }
+                    </div>
 
                 <div class="col-xs-12">
-                    @if (A.Name == "Fan" && A.Status == "ON")
-                    {
-                        <a href="/Home/AddTransaction?id=@A.Id" class="alert alert-success">
+                   
+                        @if (A.Name == "Bulb")
+                        {
+                            <div class="col-xs-9">
+                                <a data-toggle="modal" data-target="#@count">
+                                    <img src="~/images/light-bulb.png" width="150" height="100" />
+                                </a>
+                                
+                            </div>
+                    <div class="col-xs-3 top-buffer">
+                        <div class="panel panel-default">
+                            <div class="panel-title">@A.Status</div>
+                        </div>
+                    </div>
+                        }
+                    </div>
+
+
+
+                <div class="col-xs-12">
+                    
+                        @if (A.Name == "Fan")
+                        {
+                            <div class="col-xs-9">
+
+                        <a data-toggle="modal" data-target="#@count">
                             <img src="~/images/fans.png" width="150" height="100" />
                         </a>
-                    }
-
-                    @if (A.Name == "Fan" && A.Status == "OFF")
-                    {
-
-                        <a href="/Home/AddTransaction?id=@A.Id" class="alert alert-danger">
-                            <img src="~/images/fans.png" width="150" height="100" />
-                        </a>
-                    }
-                </div>
+                        
+                    </div>
+                    <div class="col-xs-3 top-buffer">
+                        <div class="panel panel-default">
+                            <div class="panel-title">@A.Status</div>
+                        </div>
+                    </div>
+                        }
+                    </div>
 
 
 
@@ -108,7 +112,56 @@
 
 
 
+
+
+
+
+
+    <div class="modal" id="@count">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <center> <h2>@A.Name</h2></center>
+                </div>
+                <center>
+                    <div class="modal-body">
+                       @if (A.Status == "OFF")
+                       {
+                        <a href="/Home/AddTransaction?id=@A.Id" class="btn-sm btn-success">
+                            Turn it ON
+                        </a>
+                       }
+                       else
+                       {
+                       <a href="/Home/AddTransaction?id=@A.Id" class="btn-sm btn-success">
+                            Turn it OFF
+                        </a>
+
+                       }
+                    </div>
+                   
+                    <div class="modal-footer">
+                        @if(ViewBag.user == "Admin")
+                        {
+                        <span class="pull-left">
+                           
+                            <a href="/Home/Deleteapp?id=@A.Id" class="btn-sm btn-danger">
+                                Delete this appliance
+                            </a><br />
+                            </span>
+                        }
+                            <a class="btn-sm btn-success" data-dismiss="modal">Close</a>
+</div>
+</center>
+</div>
+        </div>
+    </div>
+
 }
 
 
+<style>
 
+    .top-buffer { margin-top: 35px;}
+
+</style>

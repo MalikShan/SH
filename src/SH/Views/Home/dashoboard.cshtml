@@ -50,7 +50,7 @@
     <div class="wrapper">
         <header class="main-header">
             <!-- Logo -->
-            <a href="index2.html" class="logo">
+            <a asp-area="" asp-controller="Home" asp-action="dashoboard" class="logo">
                 <!-- mini logo for sidebar mini 50x50 pixels -->
                 <span class="logo-mini"><b>S</b>H</span>
                 <!-- logo for regular state and mobile devices -->
@@ -73,7 +73,7 @@
                 <!-- /.search form -->
                 <!-- sidebar menu: : style can be found in sidebar.less -->
                 <ul class="sidebar-menu" data-widget="tree">
-                    <li class="header"><h4>  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<font color="#ffffff">Welcome : @ViewData["username"]</font> </h4></li>
+                    <li class="header"><h4>  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<font color="#ffffff">Welcome : @ViewData["username"] </font> </h4></li>
                     <li class="active treeview">
                         <a href="#">
                             <i class="fa fa-home"></i> <span>Rooms Management</span>
@@ -160,7 +160,7 @@
                     <small>Control panel</small>
                 </h1>
                 <ol class="breadcrumb">
-                    <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
+                    <li><a asp-area="" asp-controller="Home" asp-action="dashoboard"><i class="fa fa-dashboard"></i> Home</a></li>
                     <li class="active">Dashboard</li>
                 </ol>
             </section>
@@ -178,7 +178,7 @@
                             <div class="icon">
                                 <i class="ion ion-home"></i>
                             </div>
-                            <a href="#" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
+                            <a asp-area="" asp-controller="Home" asp-action="Showrooms" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
                         </div>
                     </div>
                     <!-- ./col -->
@@ -192,7 +192,7 @@
                             <div class="icon">
                                 <i class="ion ion-lightbulb"></i>
                             </div>
-                            <a href="#" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
+                            <a asp-area="" asp-controller="Home" asp-action="Showrooms" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
                         </div>
                     </div>
                     <!-- ./col -->
@@ -206,7 +206,7 @@
                             <div class="icon">
                                 <i class="ion ion-person-add"></i>
                             </div>
-                            <a href="#" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
+                            <a asp-area="" asp-controller="Home" asp-action="allusers" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
                         </div>
                     </div>
                     <!-- ./col -->

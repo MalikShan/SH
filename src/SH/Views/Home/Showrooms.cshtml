@@ -2,7 +2,26 @@
 
 @{
     ViewData["Title"] = "Showrooms";
-   
+
+}
+
+
+@if (ViewBag.msg != null || ViewBag.msg2 != null || ViewBag.msg3 != null)
+{
+    @if (ViewBag.msg2 == "Appliance already entered please select another one")
+    {
+        <div class="alert alert-danger" id="myDiv"> <span class="glyphicon glyphicon-user"></span><h4>@ViewBag.msg2</h4> </div>
+    }
+
+    @if(ViewBag.msg == "Successfully Saved")
+    {
+        <div class="alert alert-success" id="myDiv"> <span class="glyphicon glyphicon-user"></span><h4>@ViewBag.msg</h4> </div>
+    }
+    @if(ViewBag.msg3 == "Successfully deleted")
+    {
+
+        <div class="alert alert-danger" id="myDiv"> <span class="glyphicon glyphicon-user"></span><h4>@ViewBag.msg3</h4> </div>
+    }
 }
 
 <center><h3>All Rooms</h3></center>
@@ -57,7 +76,19 @@
         })
 
 
+ 
+
+
+
+        $("#myDiv").fadeOut(4000);
+
+
+
     </script>
+
+
+
+
 
 
 }

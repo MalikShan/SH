@@ -65,58 +65,58 @@ namespace SH
 
                     }
 
+                }
+
+                else
+                {
 
 
-                    else
+                    u.Permission = String.Join(",", box);
+
+                    string email = u.Email;
+                    Regex regex = new Regex(@"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$");
+                    Match match = regex.Match(email);
+                    if (match.Success)
                     {
 
+                        u.Email = match.ToString();
+
+
+                        string strmsg = string.Empty;
+                        byte[] encode = new byte[u.Password.Length];
+                        encode = Encoding.UTF8.GetBytes(u.Password);
+                        strmsg = Convert.ToBase64String(encode);
+                        u.Password = strmsg;
 
 
 
-                        string email = u.Email;
-                        Regex regex = new Regex(@"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$");
-                        Match match = regex.Match(email);
-                        if (match.Success)
+                        lc.Residents.Add(u);
+
+                        var foo = lc.Residents.Where(v => v.Username == u.Username).ToList();
+                        var foocount = foo.Count();
+                        if (foocount == 0)
                         {
-
-                            u.Email = match.ToString();
-
-
-                            string strmsg = string.Empty;
-                            byte[] encode = new byte[u.Password.Length];
-                            encode = Encoding.UTF8.GetBytes(u.Password);
-                            strmsg = Convert.ToBase64String(encode);
-                            u.Password = strmsg;
-
-
-
-                            lc.Residents.Add(u);
-
-                            var foo = lc.Residents.Where(v => v.Username == u.Username).ToList();
-                            var foocount = foo.Count();
-                            if (foocount == 0)
-                            {
-                                lc.SaveChanges();
-                                ModelState.Clear();
-                                ViewBag.Message = "User is successfully registered.";
-                            }
-
-                            else
-                            {
-                                ModelState.Clear();
-                                ViewBag.Message = "user already exists please select another one";
-                            }
-
-
+                            lc.SaveChanges();
+                            ModelState.Clear();
+                            ViewBag.Message = "User is successfully registered.";
                         }
 
                         else
                         {
-                            ModelState.AddModelError("", "incorrect email format correct format is abc@domain.com");
+                            ModelState.Clear();
+                            ViewBag.Message = "user already exists please select another one";
                         }
 
+
                     }
+
+                    else
+                    {
+                        ModelState.AddModelError("", "incorrect email format correct format is abc@domain.com");
+                    }
+
                 }
+                
             }
             //var addr = new System.Net.Mail.MailAddress(u.Email);
             //string aa = addr.Address;
@@ -345,8 +345,12 @@ namespace SH
 
         public IActionResult Showrooms()
         {
+          
             if (HttpContext.Session.GetString("Id") != null)
             {
+                ViewBag.msg2 = TempData["message"];
+                ViewBag.msg = TempData["messagesuc"];
+                ViewBag.msg3 = TempData["del"];
                 var id = HttpContext.Session.GetString("Id");
                 var account = lc.Residents.Where(u=>u.Id.ToString()==id).SingleOrDefault();
                 if (account.Usertype == "Admin")
@@ -408,7 +412,7 @@ namespace SH
 
 
 
-        #region add and show appliances
+        #region add and show and delete appliances
 
         [HttpGet]
         public IActionResult Appliances(int roomid)
@@ -429,36 +433,55 @@ namespace SH
         {
 
 
-         string id =   HttpContext.Session.GetString("Id");
+            string id =   HttpContext.Session.GetString("Id");
+           
+            var account = lc.Residents.Where(u=>u.Id.ToString()==id).SingleOrDefault();
 
-
-           var account = lc.Residents.Where(u=>u.Id.ToString()==id).SingleOrDefault();
+             
 
             if (account.Usertype == "Admin")
             {
 
-
                 c.Name = appliances;
 
-
-                lc.Appliances.Add(c);
-
-
-
-                lc.SaveChanges();
+                var foo = lc.Appliances.Where(v => v.Name == c.Name && v.RoomId == rid);
+                var foocount = foo.Count();
+                if (foocount == 0)
+                {
 
 
-                Room b_obj = lc.Room.Where(u => u.Id == rid).SingleOrDefault<Room>();
-                c.RoomId = b_obj.Id;
+
+                    lc.Appliances.Add(c);
+
+                    lc.SaveChanges();
+
+                    Room b_obj = lc.Room.Where(u => u.Id == rid).SingleOrDefault<Room>();
+                    c.RoomId = b_obj.Id;
 
 
-                //one issue
-               b_obj.NoOfAppliances++;
+                    b_obj.NoOfAppliances++;
+
+
+                    lc.SaveChanges();
+                    
+                    ModelState.Clear();
+                    TempData["messagesuc"] = "Successfully Saved";
+                    return RedirectToAction("Showrooms");
+
+                }
+
+                else
+                {
+
+                    TempData["message"] = "Appliance already entered please select another one";
+
+                    // System.Threading.Thread.Sleep(5000);
+                    // System.Threading.Tasks.Task.Delay(3000).Wait();
+                    return RedirectToAction("Showrooms");
+                }   
+
                 
-
-                lc.SaveChanges();
-                ViewBag.Message = "Successfully Saved";
-                return View();
+              
             }
             return View();
 
@@ -469,6 +492,7 @@ namespace SH
         {
             if (HttpContext.Session.GetString("Id") != null)
             {
+                ViewBag.user = HttpContext.Session.GetString("Usertype");
                 IList<Appliances> list = lc.Appliances.Where(u => u.RoomId == roomid).ToList<Appliances>();
 
                 return View(list);
@@ -478,6 +502,31 @@ namespace SH
                 return RedirectToAction("Login");
             }
         }
+
+
+        public IActionResult Deleteapp(int id)
+        {
+            if (HttpContext.Session.GetString("Id") != null)
+            {
+                Appliances obj = lc.Appliances.Where(s => s.Id == id).SingleOrDefault();
+                lc.Appliances.Remove(obj);
+                lc.SaveChanges();
+                Room objr = lc.Room.Where(s => s.Id == obj.RoomId).SingleOrDefault();
+                objr.NoOfAppliances--;
+                lc.SaveChanges();
+                TempData["del"] = "Successfully deleted";
+                return RedirectToAction("Showrooms");
+            }
+            else
+            {
+                RedirectToAction("Login");
+            }
+            return View();
+           
+        }
+
+
+
 
 
         #endregion
@@ -585,7 +634,9 @@ namespace SH
                 IList<Residents> listu = lc.Residents.ToList<Residents>();
                 ViewData["userpCount"] = listu.Count;
 
-                
+                ViewData["username"] = HttpContext.Session.GetString("Username");
+
+
                 return View();
             }
             else

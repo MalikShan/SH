@@ -7,7 +7,7 @@ namespace SH.Models
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public int? NoOfAppliances { get; set; }
+        public int NoOfAppliances { get; set; }
         public string UserId { get; set; }
     }
 }

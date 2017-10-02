@@ -174,8 +174,8 @@ namespace SH.Models
                     .HasColumnName("name")
                     .HasMaxLength(50);
 
-                
-                 entity.Property(e => e.NoOfAppliances).HasColumnName("no of appliances");
+                entity.Property(e => e.NoOfAppliances).HasColumnName("no of appliances");
+                // entity.Property(e => e.NoOfAppliances).HasColumnName("no of appliances");
 
                 entity.Property(e => e.UserId).HasColumnName("user_id");
             });

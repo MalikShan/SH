@@ -7,6 +7,7 @@ namespace SH.Models
     public partial class Residents
     {
         public int Id { get; set; }
+        [RegularExpression(@"^[a-zA-Z]+$", ErrorMessage = "Use letters only please")]
         public string Username { get; set; }
         
         public string Email { get; set; }
