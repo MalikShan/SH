@@ -1,0 +1,142 @@
+﻿@model IEnumerable<SH.Models.Room>
+
+
+<div id="content">
+
+    <center><h3>Smart Home</h3></center>
+
+ <br />
+
+    <table>
+        <tr>
+            <th>No of Rooms</th>
+            <th>No of Appliances</th>
+            <th>Usage</th>
+        </tr>
+
+
+        <tbody>
+
+@foreach (var item in Model)
+{
+
+
+    <tr>
+
+        <td>
+            <strong> @Html.DisplayFor(modelItem => item.Name)</strong>
+        </td>
+
+  
+   
+        <td>
+            <strong> @Html.DisplayFor(modelItem => item.NoOfAppliances)</strong>
+        </td>
+    </tr>
+                }
+
+
+          
+</tbody>
+       
+        <tr>
+           
+        </tr>
+        <tr>
+           
+        </tr>
+        <tr>
+           
+        </tr>
+        <tr>
+           
+        </tr>
+        <tr>
+           
+        </tr>
+    </table>
+
+
+
+
+
+</div>
+<div id="editor"></div>
+<br />
+<br />
+<button id="cmd">View Bill</button>
+<!--Add External Libraries - JQuery and jspdf-->
+<script src="https://code.jquery.com/jquery-1.12.3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/0.9.0rc1/jspdf.min.js"></script>
+
+
+<style>
+
+
+    h3
+{
+  border:1px solid black;
+}
+
+
+
+    table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+
+tr:nth-child(even) {
+    background-color: #dddddd;
+}
+</style>
+
+
+
+@section scripts{
+
+
+
+
+<script>
+var doc = new jsPDF();
+var specialElementHandlers = {
+    '#editor': function (element, renderer) {
+        return true;
+    }
+};
+
+$('#cmd').click(function () {
+    doc.fromHTML($('#content').html(), 15, 15, {
+        'width': 170,
+            'elementHandlers': specialElementHandlers
+    });
+    doc.save('sample-file.pdf');
+});
+
+// This code is collected but useful, click below to jsfiddle link.
+
+ 
+        $(function () {
+
+
+
+            $("#list").load("/Home/Billapp");
+
+        });
+
+
+
+</script>
+
+
+
+
+
+}

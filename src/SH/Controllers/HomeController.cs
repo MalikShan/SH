@@ -64,58 +64,108 @@ namespace SH
                         ModelState.AddModelError("", "you need to select permission for Other user");
 
                     }
+                    else
+                    {
+                        u.Permission = String.Join(",", box);
+
+                        string email = u.Email;
+                        Regex regex = new Regex(@"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$");
+                        Match match = regex.Match(email);
+                        if (match.Success)
+                        {
+
+                            u.Email = match.ToString();
+
+
+                            string strmsg = string.Empty;
+                            byte[] encode = new byte[u.Password.Length];
+                            encode = Encoding.UTF8.GetBytes(u.Password);
+                            strmsg = Convert.ToBase64String(encode);
+                            u.Password = strmsg;
+
+
+
+                            lc.Residents.Add(u);
+
+                            var foo = lc.Residents.Where(v => v.Username == u.Username).ToList();
+                            var foocount = foo.Count();
+                            if (foocount == 0)
+                            {
+                                lc.SaveChanges();
+                                ModelState.Clear();
+                                ViewBag.Message = "User is successfully registered.";
+                            }
+
+                            else
+                            {
+                                ModelState.Clear();
+                                ViewBag.Message = "user already exists please select another one";
+                            }
+
+
+                        }
+                        else
+                        {
+                            ModelState.AddModelError("", "incorrect email format correct format is abc@domain.com");
+                        }
+                    }
+                }
+                
+
+
+
+
+            
+
+            else
+            {
+
+
+                u.Permission = String.Join(",", box);
+
+                string email = u.Email;
+                Regex regex = new Regex(@"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$");
+                Match match = regex.Match(email);
+                if (match.Success)
+                {
+
+                    u.Email = match.ToString();
+
+
+                    string strmsg = string.Empty;
+                    byte[] encode = new byte[u.Password.Length];
+                    encode = Encoding.UTF8.GetBytes(u.Password);
+                    strmsg = Convert.ToBase64String(encode);
+                    u.Password = strmsg;
+
+
+
+                    lc.Residents.Add(u);
+
+                    var foo = lc.Residents.Where(v => v.Username == u.Username).ToList();
+                    var foocount = foo.Count();
+                    if (foocount == 0)
+                    {
+                        lc.SaveChanges();
+                        ModelState.Clear();
+                        ViewBag.Message = "User is successfully registered.";
+                    }
+
+                    else
+                    {
+                        ModelState.Clear();
+                        ViewBag.Message = "user already exists please select another one";
+                    }
+
 
                 }
 
                 else
                 {
-
-
-                    u.Permission = String.Join(",", box);
-
-                    string email = u.Email;
-                    Regex regex = new Regex(@"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$");
-                    Match match = regex.Match(email);
-                    if (match.Success)
-                    {
-
-                        u.Email = match.ToString();
-
-
-                        string strmsg = string.Empty;
-                        byte[] encode = new byte[u.Password.Length];
-                        encode = Encoding.UTF8.GetBytes(u.Password);
-                        strmsg = Convert.ToBase64String(encode);
-                        u.Password = strmsg;
-
-
-
-                        lc.Residents.Add(u);
-
-                        var foo = lc.Residents.Where(v => v.Username == u.Username).ToList();
-                        var foocount = foo.Count();
-                        if (foocount == 0)
-                        {
-                            lc.SaveChanges();
-                            ModelState.Clear();
-                            ViewBag.Message = "User is successfully registered.";
-                        }
-
-                        else
-                        {
-                            ModelState.Clear();
-                            ViewBag.Message = "user already exists please select another one";
-                        }
-
-
-                    }
-
-                    else
-                    {
-                        ModelState.AddModelError("", "incorrect email format correct format is abc@domain.com");
-                    }
-
+                    ModelState.AddModelError("", "incorrect email format correct format is abc@domain.com");
                 }
+
+            }
                 
             }
             //var addr = new System.Net.Mail.MailAddress(u.Email);
@@ -494,7 +544,7 @@ namespace SH
             {
                 ViewBag.user = HttpContext.Session.GetString("Usertype");
                 IList<Appliances> list = lc.Appliances.Where(u => u.RoomId == roomid).ToList<Appliances>();
-
+ 
                 return View(list);
             }
             else
@@ -741,8 +791,6 @@ namespace SH
             IList<Room> listi = lc.Room.ToList<Room>();
             for (var i = 0; i < listi.Count; i++)
             {
-
-
 
                 if (i == 0)
                 {
@@ -1034,15 +1082,23 @@ namespace SH
 
         public IActionResult Contact()
         {
-            if (HttpContext.Session.GetString("Id") != null)
+            if (HttpContext.Session.GetString("Id")!= null)
+            { 
+            var id = HttpContext.Session.GetString("Id");
+           
+                var account = lc.Residents.Where(u => u.Id.ToString() == id).SingleOrDefault();
+            if (account.Usertype== "Admin")
             {
 
                 return View();
+                
+            }
             }
             else
             {
                 return RedirectToAction("Login");
             }
+            return View();
         }
 
    
@@ -1056,10 +1112,43 @@ namespace SH
            
         }
 
-       
 
 
+         public IActionResult Bill()
+        {
+           
+            if (HttpContext.Session.GetString("Id") != null)
+            {
+              
+                var id = HttpContext.Session.GetString("Id");
+                var account = lc.Residents.Where(u => u.Id.ToString() == id).SingleOrDefault();
+                if (account.Usertype == "Admin")
+                {
+
+
+                    IList<Room> list = lc.Room.ToList<Room>();
+
+                    return View(list);
+
+                }
+            }
+
+            return View();
+           
         }
+
+
+        //public IActionResult Billapp()
+        //{
+
+        // //   ViewBag.applist = TempData["app"];
+        //   string applist = TempData.Peek("app").ToString();
+
+        //    return View(applist);
+
+        //}
+
+    }
     }
 
 
