@@ -668,49 +668,145 @@ namespace SH
         #endregion
 
         #region Arduino REquests
-            // new region
+        // 2nd old region
+        //public IActionResult AddTransaction(int id)
+        //{
+        //    // When user hit on app icon,transaction table me request create hoge 
+        //    // chk current status of app from appliances table and prepare responce againts according to current tatus(Opposite)
+
+        //    Transaction t1 = new Transaction();
+        //    t1.Request = System.DateTime.Now;
+        //    t1.AppId = id;
+        //    t1.Day = DateTime.Now.DayOfWeek.ToString();
+
+
+        //    Appliances app = new Appliances();
+        //    app = lc.Appliances.Where(m => m.Id == id).SingleOrDefault();
+        //    ViewBag.AppStatus = app.Status;
+        //    string Action = "";
+        //    if (app.Status == "OFF")
+        //    {
+        //        Action = "1";
+        //        t1.Action = "ON";
+        //    }
+        //    else
+        //    {
+        //        t1.Action = "OFF";
+        //        Action = "0";
+        //    }
+        //    lc.Transaction.Add(t1);
+        //    lc.SaveChanges();
+
+        //    try
+        //    {
+
+        //        Uri myurl = new Uri("http://192.168.43.101/gpio" + id + "/" + Action);
+        //        WebClient wcl = new WebClient();
+        //        var content = wcl.DownloadString(myurl);
+        //    }
+
+        //    catch
+        //    {
+        //        return View();
+        //    }
+
+        //    return View();
+        //}
+        //public IActionResult DATAFORARD()
+        //{
+        //    //step 2 arduino hit this action
+
+
+        //    //TRYCATCH
+        //    Transaction obj = lc.Transaction.Where(u => u.Permission == null && u.Inspect == null).FirstOrDefault<Transaction>();
+        //    Appliances appobj = lc.Appliances.Where(u => u.Id == obj.AppId).SingleOrDefault();
+
+        //    obj.Permission = DateTime.Now.ToString();
+
+        //    if (obj.Action == "OFF")
+        //    {
+        //        IList<Transaction> olist = lc.Transaction.Where(m => m.Action == "ON" && m.AppId == obj.AppId).OrderByDescending(m => m.Id).ToList();
+        //        var obj2 = olist.FirstOrDefault();
+        //        DateTime startTime = Convert.ToDateTime(obj2.Request);
+        //        DateTime EndTime = Convert.ToDateTime(obj.Request);
+        //        TimeSpan time = EndTime - startTime;
+
+        //       // obj.Timespan = EndTime - startTime;
+        //    }
+
+
+        //    if (appobj.Status != "ON")
+        //    {
+        //        appobj.Status = "ON";
+        //    }
+        //    else
+        //    {
+        //        appobj.Status = "OFF";
+        //    }
+
+        //    lc.Entry(appobj).State = EntityState.Modified;
+        //    lc.Entry(obj).State = EntityState.Modified;
+        //    lc.SaveChanges();
+        //    return Json("Done");
+        //}
+
+
+        #endregion
+
+
+
+
+
+
+        #region Arduino REquests
         public IActionResult AddTransaction(int id)
         {
             // When user hit on app icon,transaction table me request create hoge 
             // chk current status of app from appliances table and prepare responce againts according to current tatus(Opposite)
-
-            Transaction t1 = new Transaction();
-            t1.Request = System.DateTime.Now;
-            t1.AppId = id;
-            t1.Day = DateTime.Now.DayOfWeek.ToString();
-
-
-            Appliances app = new Appliances();
-            app = lc.Appliances.Where(m => m.Id == id).SingleOrDefault();
-            ViewBag.AppStatus = app.Status;
-            string Action = "";
-            if (app.Status == "OFF")
+            if (HttpContext.Session.GetString("Id") != null)
             {
-                Action = "1";
-                t1.Action = "ON";
+
+                Transaction t1 = new Transaction();
+                t1.Request = System.DateTime.Now;
+                t1.AppId = id;
+                t1.Day = DateTime.Now.DayOfWeek.ToString();
+                t1.user_id = HttpContext.Session.GetInt32("Id");
+                Appliances app = new Appliances();
+                app = lc.Appliances.Where(m => m.Id == id).SingleOrDefault();
+                ViewBag.AppStatus = app.Status;
+                string Action = "";
+                if (app.Status == "OFF")
+                {
+                    Action = "1";
+                    t1.Action = "ON";
+                }
+                else
+                {
+                    t1.Action = "OFF";
+                    Action = "0";
+                }
+                lc.Transaction.Add(t1);
+                lc.SaveChanges();
+
+                try
+                {
+
+                    Uri myurl = new Uri("http://192.168.43.101/gpio" + id + "/" + Action);
+                    WebClient wcl = new WebClient();
+                    var content = wcl.DownloadString(myurl);
+                }
+
+                catch
+                {
+                    return View();
+                }
+
+                return View();
             }
             else
             {
-                t1.Action = "OFF";
-                Action = "0";
+                return RedirectToAction("Login");
             }
-            lc.Transaction.Add(t1);
-            lc.SaveChanges();
-
-            try
-            {
-
-                Uri myurl = new Uri("http://192.168.43.101/gpio" + id + "/" + Action);
-                WebClient wcl = new WebClient();
-                var content = wcl.DownloadString(myurl);
-            }
-
-            catch
-            {
-                return View();
-            }
-
-            return View();
         }
         public IActionResult DATAFORARD()
         {
@@ -730,8 +826,8 @@ namespace SH
                 DateTime startTime = Convert.ToDateTime(obj2.Request);
                 DateTime EndTime = Convert.ToDateTime(obj.Request);
                 TimeSpan time = EndTime - startTime;
-
-               // obj.Timespan = EndTime - startTime;
+                obj.Timespan = Convert.ToDateTime(time.Seconds);
+                // obj.Timespan = EndTime-startTime; 
             }
 
 
@@ -752,6 +848,123 @@ namespace SH
 
 
         #endregion
+
+
+
+
+
+        #region Search Time
+        [HttpGet]
+        public IActionResult SearchTime()
+        {
+
+            if (HttpContext.Session.GetString("Id") != null)
+            {
+
+
+                return View();
+            }
+            else
+            {
+                return RedirectToAction("Login");
+            }
+        }
+
+        [HttpPost]
+        public IActionResult SearchTime(string FromDate, string ToDate)
+        {
+
+            if (HttpContext.Session.GetString("Id") != null)
+            {
+                DateTime toparse = DateTime.ParseExact(ToDate, "dd/MM/yyyy", null);
+                DateTime fromparse = DateTime.ParseExact(FromDate, "dd/MM/yyyy", null);
+                IList<ViewModelTransactin> olist = (from a in lc.Transaction
+                                                    where a.Request >= fromparse && a.Request <= toparse
+                                                    join app in lc.Appliances on a.AppId equals app.Id
+                                                    join room in lc.Room on app.RoomId equals room.Id
+                                                    join resi in lc.Residents on a.user_id equals resi.Id
+                                                    select new ViewModelTransactin
+                                                    {
+                                                        appId = app.Id,
+                                                        appName = app.Name,
+                                                        UserId = resi.Id,
+                                                        Username = resi.Username,
+                                                        RoomId = room.Id,
+                                                        roomName = room.Name,
+                                                        Timespan = Convert.ToInt32(a.Timespan),
+                                                        Action = a.Action,
+
+                                                    }).ToList();
+                //  lc.Transaction.Where(m => m.Request >= fromparse && m.Request <= toparse).ToList();        
+
+                return View(olist);
+            }
+            else
+            {
+                return RedirectToAction("Login");
+            }
+        }
+
+        #endregion
+
+
+        #region User and Cost
+        [HttpGet]
+        public IActionResult CostByUser()
+        {
+
+            if (HttpContext.Session.GetString("Id") != null)
+            {
+
+                return View();
+            }
+            else
+            {
+                return RedirectToAction("Login");
+            }
+        }
+
+        [HttpPost]
+        public IActionResult CostByUser(string FromDate, string ToDate)
+        {
+
+            if (HttpContext.Session.GetString("Id") != null)
+            {
+                DateTime toparse = DateTime.ParseExact(ToDate, "dd/MM/yyyy", null);
+                DateTime fromparse = DateTime.ParseExact(FromDate, "dd/MM/yyyy", null);
+                IList<ViewModelTransactin> olist = (from a in lc.Transaction
+                                                    where a.Request >= fromparse && a.Request <= toparse
+                                                    join resi in lc.Residents on a.user_id equals resi.Id
+                                                    select new ViewModelTransactin
+                                                    {
+                                                        UserId = resi.Id,
+                                                        Username = resi.Username,
+                                                        Timespan = Convert.ToInt32(a.Timespan),
+                                                        Action = a.Action,
+
+                                                    }).ToList();
+
+                //olist = olist.GroupBy(m => m.Username).ToList();
+
+                //  lc.Transaction.Where(m => m.Request >= fromparse && m.Request <= toparse).ToList();        
+
+                return View(olist);
+            }
+            else
+            {
+                return RedirectToAction("Login");
+            }
+        }
+
+        #endregion
+
+
+
+
+
+
+
+
 
         #region dashboard
         public IActionResult dashoboard()
@@ -1125,6 +1338,8 @@ namespace SH
                 if (account.Usertype == "Admin")
                 {
 
+                   
+
 
                     IList<Room> list = lc.Room.ToList<Room>();
 
@@ -1138,15 +1353,15 @@ namespace SH
         }
 
 
-        //public IActionResult Billapp()
-        //{
+        public IActionResult Billapp()
+        {
 
-        // //   ViewBag.applist = TempData["app"];
-        //   string applist = TempData.Peek("app").ToString();
+            //SautinSoft.PdfVision v = new SautinSoft.PdfVision();
+            //v.ConvertHtmlFileToPDFFile(@"www.google.com", @"d:\gog.pdf");
 
-        //    return View(applist);
+            return View();
 
-        //}
+        }
 
     }
     }

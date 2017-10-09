@@ -57,6 +57,8 @@ namespace SH
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
+           
+
             services.AddMvc();
             services.AddDistributedMemoryCache();
             services.AddSession();
