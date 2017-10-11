@@ -90,12 +90,11 @@
         <div class="form-group">
             <div class="col-md-offset-5 col-md-10">
                 <input type="submit" value="Add" class="btn btn-info" />
+                <a asp-action="dashoboard" class="btn btn-info"><span class="fa fa-arrow-left"> Back to Dashboard</span></a>
             </div>
         </div>
     </div>
 </form>
-
-
 
 
 
@@ -116,6 +115,19 @@
 
 
         $("#myDiv").fadeOut(4000);
+
+
+       
+
+
+        $(document).ready(function () {
+            window.history.pushState(null, "", window.location.href);
+            window.onpopstate = function () {
+                window.history.pushState(null, "", window.location.href);
+            };
+        });
+
+
 
 
      

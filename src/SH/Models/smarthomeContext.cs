@@ -198,11 +198,11 @@ namespace SH.Models
                     .HasColumnName("inspect")
                     .HasMaxLength(50);
 
-                entity.Property(e => e.Permission).HasColumnName("permission");
+               // entity.Property(e => e.Permission).HasColumnName("permission");
 
-                //entity.Property(e => e.Permission)
-                //    .HasColumnName("permission")
-                //    .HasMaxLength(50);
+                entity.Property(e => e.Permission)
+                    .HasColumnName("permission")
+                    .HasMaxLength(50);
 
                 entity.Property(e => e.Request)
                     .HasColumnName("request")

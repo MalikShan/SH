@@ -12,7 +12,7 @@ namespace SH.Models
         public string Inspect { get; set; }
         public string Action { get; set; }
         public string Day { get; set; }
-        public DateTime? Timespan { get; set; }
+        public int? Timespan { get; set; }
         public int? user_id { get; set; }
     }
 }

@@ -17,10 +17,11 @@ using Microsoft.AspNetCore.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace SH
 {
-   
+
     public class HomeController : Controller
     {
         public smarthomeContext lc = null;
@@ -48,7 +49,7 @@ namespace SH
 
 
         [HttpPost]
-        public IActionResult Register(Residents u, string[] box )
+        public IActionResult Register(Residents u, string[] box)
         {
             if (ModelState.IsValid)
             {
@@ -110,63 +111,63 @@ namespace SH
                         }
                     }
                 }
-                
 
 
 
 
-            
-
-            else
-            {
 
 
-                u.Permission = String.Join(",", box);
 
-                string email = u.Email;
-                Regex regex = new Regex(@"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$");
-                Match match = regex.Match(email);
-                if (match.Success)
+                else
                 {
 
-                    u.Email = match.ToString();
 
+                    u.Permission = String.Join(",", box);
 
-                    string strmsg = string.Empty;
-                    byte[] encode = new byte[u.Password.Length];
-                    encode = Encoding.UTF8.GetBytes(u.Password);
-                    strmsg = Convert.ToBase64String(encode);
-                    u.Password = strmsg;
-
-
-
-                    lc.Residents.Add(u);
-
-                    var foo = lc.Residents.Where(v => v.Username == u.Username).ToList();
-                    var foocount = foo.Count();
-                    if (foocount == 0)
+                    string email = u.Email;
+                    Regex regex = new Regex(@"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$");
+                    Match match = regex.Match(email);
+                    if (match.Success)
                     {
-                        lc.SaveChanges();
-                        ModelState.Clear();
-                        ViewBag.Message = "User is successfully registered.";
+
+                        u.Email = match.ToString();
+
+
+                        string strmsg = string.Empty;
+                        byte[] encode = new byte[u.Password.Length];
+                        encode = Encoding.UTF8.GetBytes(u.Password);
+                        strmsg = Convert.ToBase64String(encode);
+                        u.Password = strmsg;
+
+
+
+                        lc.Residents.Add(u);
+
+                        var foo = lc.Residents.Where(v => v.Username == u.Username).ToList();
+                        var foocount = foo.Count();
+                        if (foocount == 0)
+                        {
+                            lc.SaveChanges();
+                            ModelState.Clear();
+                            ViewBag.Message = "User is successfully registered.";
+                        }
+
+                        else
+                        {
+                            ModelState.Clear();
+                            ViewBag.Message = "user already exists please select another one";
+                        }
+
+
                     }
 
                     else
                     {
-                        ModelState.Clear();
-                        ViewBag.Message = "user already exists please select another one";
+                        ModelState.AddModelError("", "incorrect email format correct format is abc@domain.com");
                     }
 
-
                 }
 
-                else
-                {
-                    ModelState.AddModelError("", "incorrect email format correct format is abc@domain.com");
-                }
-
-            }
-                
             }
             //var addr = new System.Net.Mail.MailAddress(u.Email);
             //string aa = addr.Address;
@@ -189,14 +190,14 @@ namespace SH
         [HttpGet]
         public IActionResult Login()
         {
-            if(HttpContext.Session.GetString("Id") == null)
+            if (HttpContext.Session.GetString("Id") == null)
             {
                 return View();
             }
             else
             {
                 if (HttpContext.Session.GetString("Usertype") == "Admin")
-                { 
+                {
                     return View("dashoboard");
                 }
 
@@ -207,7 +208,7 @@ namespace SH
 
             }
 
-           
+
         }
 
         [HttpPost]
@@ -229,7 +230,7 @@ namespace SH
                 HttpContext.Session.SetString("Usertype", account.Usertype);
                 if (account.Usertype == "Admin")
                 {
-                   
+
                     return RedirectToAction("dashoboard");
                 }
                 else
@@ -245,10 +246,10 @@ namespace SH
         }
 
 
-        
+
         public IActionResult logout()
         {
-            if(HttpContext.Session.GetString("Id") != null)
+            if (HttpContext.Session.GetString("Id") != null)
             {
 
                 HttpContext.Session.Clear();
@@ -358,30 +359,30 @@ namespace SH
             var account = lc.Residents.Where(u => u.Id.ToString() == id).SingleOrDefault();
 
             if (account.Usertype == "Admin")
+            {
+
+
+                lc.Room.Add(c);
+                c.UserId = account.Id.ToString();
+
+
+                var foo = lc.Room.Where(v => v.Name == c.Name);
+                var foocount = foo.Count();
+                if (foocount == 0)
                 {
-
-
-                    lc.Room.Add(c);
-                    c.UserId = account.Id.ToString();
-
-
-                    var foo = lc.Room.Where(v => v.Name == c.Name);
-                    var foocount = foo.Count();
-                    if (foocount == 0)
-                    {
-                        lc.SaveChanges();
-                        ViewBag.Message = "Successfully Saved";
+                    lc.SaveChanges();
+                    ViewBag.Message = "Successfully Saved";
                     ModelState.Clear();
-                        return View();
-                    }
-
-                    else
-                    {
-                        ViewBag.Message = "room already entered please select another one";
-                    }
+                    return View();
                 }
 
-             
+                else
+                {
+                    ViewBag.Message = "room already entered please select another one";
+                }
+            }
+
+
             else
             {
                 return RedirectToAction("Login");
@@ -395,14 +396,15 @@ namespace SH
 
         public IActionResult Showrooms()
         {
-          
+
             if (HttpContext.Session.GetString("Id") != null)
             {
                 ViewBag.msg2 = TempData["message"];
                 ViewBag.msg = TempData["messagesuc"];
                 ViewBag.msg3 = TempData["del"];
+                ViewBag.msg4 = TempData["messageswitch"];
                 var id = HttpContext.Session.GetString("Id");
-                var account = lc.Residents.Where(u=>u.Id.ToString()==id).SingleOrDefault();
+                var account = lc.Residents.Where(u => u.Id.ToString() == id).SingleOrDefault();
                 if (account.Usertype == "Admin")
                 {
 
@@ -417,7 +419,7 @@ namespace SH
             {
                 return RedirectToAction("Login");
             }
-            
+
             return View();
         }
 
@@ -455,7 +457,7 @@ namespace SH
                 return RedirectToAction("Login");
             }
 
-            
+
         }
 
         #endregion
@@ -479,45 +481,53 @@ namespace SH
         }
 
         [HttpPost]
-        public IActionResult Appliances(Appliances c, int rid, string appliances)
+        public IActionResult Appliances(Appliances c, int rid, string appliances, string switchno)
         {
 
 
-            string id =   HttpContext.Session.GetString("Id");
-           
-            var account = lc.Residents.Where(u=>u.Id.ToString()==id).SingleOrDefault();
+            string id = HttpContext.Session.GetString("Id");
 
-             
+            var account = lc.Residents.Where(u => u.Id.ToString() == id).SingleOrDefault();
+
+
 
             if (account.Usertype == "Admin")
             {
 
                 c.Name = appliances;
-
+                c.Switch_No = Convert.ToInt32(switchno);
                 var foo = lc.Appliances.Where(v => v.Name == c.Name && v.RoomId == rid);
                 var foocount = foo.Count();
+                var foswitch = lc.Appliances.Where(v => v.Switch_No == c.Switch_No);
+                var fooswitchcount = foswitch.Count();
                 if (foocount == 0)
                 {
+                    if (fooswitchcount == 0)
+                    {
+
+                        lc.Appliances.Add(c);
+
+                        lc.SaveChanges();
+
+                        Room b_obj = lc.Room.Where(u => u.Id == rid).SingleOrDefault<Room>();
+                        c.RoomId = b_obj.Id;
 
 
-
-                    lc.Appliances.Add(c);
-
-                    lc.SaveChanges();
-
-                    Room b_obj = lc.Room.Where(u => u.Id == rid).SingleOrDefault<Room>();
-                    c.RoomId = b_obj.Id;
+                        b_obj.NoOfAppliances++;
 
 
-                    b_obj.NoOfAppliances++;
+                        lc.SaveChanges();
 
-
-                    lc.SaveChanges();
-                    
-                    ModelState.Clear();
-                    TempData["messagesuc"] = "Successfully Saved";
-                    return RedirectToAction("Showrooms");
-
+                        ModelState.Clear();
+                        TempData["messagesuc"] = "Successfully Saved";
+                        return RedirectToAction("Showrooms");
+                    }
+                    else
+                    {
+                        ModelState.Clear();
+                        TempData["messageswitch"] = "Switch already in use select other one please";
+                        return RedirectToAction("Showrooms");
+                    }
                 }
 
                 else
@@ -528,10 +538,10 @@ namespace SH
                     // System.Threading.Thread.Sleep(5000);
                     // System.Threading.Tasks.Task.Delay(3000).Wait();
                     return RedirectToAction("Showrooms");
-                }   
+                }
 
-                
-              
+
+
             }
             return View();
 
@@ -544,7 +554,7 @@ namespace SH
             {
                 ViewBag.user = HttpContext.Session.GetString("Usertype");
                 IList<Appliances> list = lc.Appliances.Where(u => u.RoomId == roomid).ToList<Appliances>();
- 
+
                 return View(list);
             }
             else
@@ -572,7 +582,7 @@ namespace SH
                 RedirectToAction("Login");
             }
             return View();
-           
+
         }
 
 
@@ -758,6 +768,103 @@ namespace SH
 
 
 
+        //#region Arduino REquests
+
+        //3rd old region
+
+        //public IActionResult AddTransaction(int id)
+        //{
+        //    // When user hit on app icon,transaction table me request create hoge 
+        //    // chk current status of app from appliances table and prepare responce againts according to current tatus(Opposite)
+        //    if (HttpContext.Session.GetString("Id") != null)
+        //    {
+
+        //        Transaction t1 = new Transaction();
+        //        t1.Request = System.DateTime.Now;
+        //        t1.AppId = id;
+        //        t1.Day = DateTime.Now.DayOfWeek.ToString();
+        //        t1.user_id = Int32.Parse(HttpContext.Session.GetString("Id"));
+        //        Appliances app = new Appliances();
+        //        app = lc.Appliances.Where(m => m.Id == id).SingleOrDefault();
+        //        ViewBag.AppStatus = app.Status;
+        //        string Action = "";
+        //        if (app.Status == "OFF")
+        //        {
+        //            Action = "1";
+        //            t1.Action = "ON";
+        //        }
+        //        else
+        //        {
+        //            t1.Action = "OFF";
+        //            Action = "0";
+        //        }
+        //        lc.Transaction.Add(t1);
+        //        lc.SaveChanges();
+
+        //        try
+        //        {
+
+        //            Uri myurl = new Uri("http://192.168.43.101/gpio" + id + "/" + Action);
+        //            WebClient wcl = new WebClient();
+        //            var content = wcl.DownloadString(myurl);
+        //        }
+
+        //        catch
+        //        {
+        //            return View();
+        //        }
+
+        //        return View();
+        //    }
+        //    else
+        //    {
+        //        return RedirectToAction("Login");
+        //    }
+        //}
+        //public IActionResult DATAFORARD()
+        //{
+        //    //step 2 arduino hit this action
+
+
+        //    //TRYCATCH
+        //    Transaction obj = lc.Transaction.Where(u => u.Permission == null && u.Inspect == null).FirstOrDefault<Transaction>();
+        //    Appliances appobj = lc.Appliances.Where(u => u.Id == obj.AppId).SingleOrDefault();
+
+        //    obj.Permission = DateTime.Now.ToString();
+
+        //    if (obj.Action == "OFF")
+        //    {
+        //        IList<Transaction> olist = lc.Transaction.Where(m => m.Action == "ON" && m.AppId == obj.AppId).OrderByDescending(m => m.Id).ToList();
+        //        var obj2 = olist.FirstOrDefault();
+        //        DateTime startTime = Convert.ToDateTime(obj2.Request);
+        //        DateTime EndTime = Convert.ToDateTime(obj.Request);
+        //        TimeSpan time = EndTime - startTime;
+        //        obj.Timespan = time.Seconds;
+        //        // obj.Timespan = EndTime-startTime; 
+        //    }
+
+
+        //    if (appobj.Status != "ON")
+        //    {
+        //        appobj.Status = "ON";
+        //    }
+        //    else
+        //    {
+        //        appobj.Status = "OFF";
+        //    }
+
+        //    lc.Entry(appobj).State = EntityState.Modified;
+        //    lc.Entry(obj).State = EntityState.Modified;
+        //    lc.SaveChanges();
+        //    return Json("Done");
+        //}
+
+
+        //#endregion
+
+
+
+
         #region Arduino REquests
         public IActionResult AddTransaction(int id)
         {
@@ -766,11 +873,17 @@ namespace SH
             if (HttpContext.Session.GetString("Id") != null)
             {
 
+                IList<Transaction> olist = lc.Transaction.Where(m => m.Permission == null && m.Inspect == null).ToList();
+                if (olist.Count >= 3)
+                {
+                    return RedirectToAction("SomeProblemEmail");
+                }
+
                 Transaction t1 = new Transaction();
                 t1.Request = System.DateTime.Now;
                 t1.AppId = id;
                 t1.Day = DateTime.Now.DayOfWeek.ToString();
-                t1.user_id = HttpContext.Session.GetInt32("Id");
+                t1.user_id = Int32.Parse(HttpContext.Session.GetString("Id"));
                 Appliances app = new Appliances();
                 app = lc.Appliances.Where(m => m.Id == id).SingleOrDefault();
                 ViewBag.AppStatus = app.Status;
@@ -826,7 +939,7 @@ namespace SH
                 DateTime startTime = Convert.ToDateTime(obj2.Request);
                 DateTime EndTime = Convert.ToDateTime(obj.Request);
                 TimeSpan time = EndTime - startTime;
-                obj.Timespan = Convert.ToDateTime(time.Seconds);
+                obj.Timespan = time.Seconds;
                 // obj.Timespan = EndTime-startTime; 
             }
 
@@ -848,6 +961,98 @@ namespace SH
 
 
         #endregion
+
+
+
+        #region New Emails
+        public bool SendWelcomeEmail()
+        {
+           
+                IList<Appliances> olist = lc.Appliances.Where(m => m.Status == "ON").ToList();
+                if (olist.Count() > 0)
+                {
+                    foreach (var item in olist)
+                    {
+                        item.Status = "OFF";
+                        lc.Entry(item).State = EntityState.Modified;
+                        lc.SaveChanges();
+                        ModelState.Clear();
+                    }
+                }
+                IList<Residents> listi = lc.Residents.Where(m => m.Usertype == "Admin").ToList<Residents>();
+                foreach (var items in listi)
+                {
+                    var to = items.Email;
+                    var body = "Welcome! Your Smart home System Now Enable";
+                    var subject = "Welcome!!!";
+                    MailMessage omailmessage = new MailMessage();
+                    omailmessage.From = new MailAddress("smarthome327@gmail.com");
+                    omailmessage.To.Add(to);
+                    omailmessage.Body = body;
+                    omailmessage.Subject = subject;
+                    omailmessage.IsBodyHtml = true;
+                    SmtpClient osmtpclient = new SmtpClient("smtp.gmail.com", 587);
+                    osmtpclient.EnableSsl = true;
+                    osmtpclient.UseDefaultCredentials = true;
+                    osmtpclient.Credentials = new NetworkCredential("smarthome327@gmail.com", "Smart_327");
+                    osmtpclient.Send(omailmessage);
+                }
+                return true;
+
+            }
+
+          
+        public bool SomeProblemEmail()
+        {
+            IList<Residents> listi = lc.Residents.ToList<Residents>();
+            var res = listi.FirstOrDefault();
+            IList<Transaction> olist = lc.Transaction.Where(m => m.Permission == null && m.Inspect == null).ToList();
+            foreach (var item in olist)
+            {
+                item.Inspect = "1";
+                lc.Entry(item).State = EntityState.Modified;
+                lc.SaveChanges();
+                ModelState.Clear();
+            }
+
+            foreach (var items in listi)
+            {
+                var to = items.Email;
+                var body = "Something issue with your appliances please contact technical team of smart home: User Tried  more then three time but System is still unresponsivre";
+                var subject = "Issue in appliance";
+
+                MailMessage omailmessage = new MailMessage();
+                omailmessage.From = new MailAddress("smarthome327@gmail.com");
+                omailmessage.To.Add(to);
+                omailmessage.Body = body;
+                omailmessage.Subject = subject;
+                omailmessage.IsBodyHtml = true;
+                SmtpClient osmtpclient = new SmtpClient("smtp.gmail.com", 587);
+                osmtpclient.EnableSsl = true;
+                osmtpclient.UseDefaultCredentials = true;
+                osmtpclient.Credentials = new NetworkCredential("smarthome327@gmail.com", "Smart_327");
+                osmtpclient.Send(omailmessage);
+            }
+
+            var to1 = "shan4924@gmail.com";
+            var body1 = "Something issue with Smart Home System Please Contact with ";
+            var subject1 = "Issue in appliance";
+            MailMessage omailmessage1 = new MailMessage();
+            omailmessage1.From = new MailAddress("smarthome327@gmail.com");
+            omailmessage1.To.Add(to1);
+            omailmessage1.Body = body1;
+            omailmessage1.Subject = subject1;
+            omailmessage1.IsBodyHtml = true;
+            SmtpClient osmtpclient1 = new SmtpClient("smtp.gmail.com", 587);
+            osmtpclient1.EnableSsl = true;
+            osmtpclient1.UseDefaultCredentials = true;
+            osmtpclient1.Credentials = new NetworkCredential("smarthome327@gmail.com", "Smart_327");
+            osmtpclient1.Send(omailmessage1);
+            return true;
+        }
+
+        #endregion
+
 
 
 
@@ -908,6 +1113,11 @@ namespace SH
         #endregion
 
 
+
+
+
+
+
         #region User and Cost
         [HttpGet]
         public IActionResult CostByUser()
@@ -915,6 +1125,18 @@ namespace SH
 
             if (HttpContext.Session.GetString("Id") != null)
             {
+                List<SelectListItem> selectitem = new List<SelectListItem>();
+                var item = lc.Residents.ToList();
+                foreach (var i in item)
+                {
+                    selectitem.Add(new SelectListItem
+                    {
+                        Text = i.Username,
+                        Value = Convert.ToString(i.Id)
+                    });
+                }
+
+                ViewBag.fname = selectitem;
 
                 return View();
             }
@@ -1192,7 +1414,7 @@ namespace SH
 
         #endregion
 
-       
+
 
 
         #region email
@@ -1234,9 +1456,9 @@ namespace SH
 
 
 
-               foreach (var items in listi)
+            foreach (var items in listi)
             {
-                  to = items.Email;
+                to = items.Email;
                 body = "something issue with your appliances please contact technical team of smart home";
                 subject = "Issue in appliance";
 
@@ -1291,21 +1513,21 @@ namespace SH
 
 
 
-       
+
 
         public IActionResult Contact()
         {
-            if (HttpContext.Session.GetString("Id")!= null)
-            { 
-            var id = HttpContext.Session.GetString("Id");
-           
-                var account = lc.Residents.Where(u => u.Id.ToString() == id).SingleOrDefault();
-            if (account.Usertype== "Admin")
+            if (HttpContext.Session.GetString("Id") != null)
             {
+                var id = HttpContext.Session.GetString("Id");
 
-                return View();
-                
-            }
+                var account = lc.Residents.Where(u => u.Id.ToString() == id).SingleOrDefault();
+                if (account.Usertype == "Admin")
+                {
+
+                    return View();
+
+                }
             }
             else
             {
@@ -1314,7 +1536,7 @@ namespace SH
             return View();
         }
 
-   
+
 
         public IActionResult list()
         {
@@ -1322,23 +1544,23 @@ namespace SH
             ViewBag.rm = room;
             return View(ViewBag.rm);
 
-           
+
         }
 
 
 
-         public IActionResult Bill()
+        public IActionResult Bill()
         {
-           
+
             if (HttpContext.Session.GetString("Id") != null)
             {
-              
+
                 var id = HttpContext.Session.GetString("Id");
                 var account = lc.Residents.Where(u => u.Id.ToString() == id).SingleOrDefault();
                 if (account.Usertype == "Admin")
                 {
 
-                   
+
 
 
                     IList<Room> list = lc.Room.ToList<Room>();
@@ -1349,7 +1571,7 @@ namespace SH
             }
 
             return View();
-           
+
         }
 
 
@@ -1363,7 +1585,11 @@ namespace SH
 
         }
 
+
+
+        
     }
+
     }
 
 

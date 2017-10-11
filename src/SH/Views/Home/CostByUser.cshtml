@@ -1,0 +1,167 @@
+﻿@model IEnumerable<SH.ViewModelTransactin>
+
+@{
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link href="~/Theme/bower_components/bootstrap-datepicker/dist/css/bootstrap-datepicker.css" rel="stylesheet" />
+<link href="~/Theme/plugins/timepicker/bootstrap-timepicker.css" rel="stylesheet" />
+
+
+
+<form asp-action="Searchtime">
+    <div class="form-horizontal">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        &nbsp; &nbsp;
+        <center>
+            <div class="form-group">
+               @Html.DropDownList("ddlfirstname", (IEnumerable<SelectListItem>)ViewBag.fname, "Select First Name")
+                       @*@Html.DropDownList("MyProjectList", new SelectList(ViewBag.MyProjectData, "Id", "UserName"))*@
+                    <input type="datetime" placeholder="From Date" class="form-control datepicker" id="FromDate" name="FromDate">
+                    <input type="datetime" placeholder="To Date" class="form-control datepicker" id="ToDate" name="ToDate">
+                    &nbsp; &nbsp;
+                    <input type="submit" value="Gnrate Report" class="btn btn-info" />
+
+</div>
+        </center>
+        <div class="form-group">
+            <div class="col-md-offset-5 col-md-10">
+            </div>
+        </div>
+    </div>
+</form>
+<div><center><h4>Genral Report</h4></center></div>
+@if (Model != null)
+{
+    double totcost = 0;
+    var a = Model.Where(m => m.Timespan != 0 && m.Action == "OFF");
+    <div class="table-responsive">
+        <table class="table table-striped" id="example">
+
+
+            <thead>
+                <tr>
+                    <th>Appliances Name</th>
+                    <th>Room</th>
+                    <th>Use by</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Duration</th>
+                    <th>Cost</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @foreach (ViewModelTransactin item in a)
+                {
+                    var timeVolt = Int32.Parse(@item.Voltages) * 0.00278;
+
+                    var cost = timeVolt / 1000;
+                    totcost = totcost + cost;
+                    <tr>
+                        <td>@item.appName</td>
+                        <td>@item.roomName</td>
+                        <td>@item.Username</td>
+                        <td>@item.Request.Value.ToShortDateString()</td>
+                        <td>@item.Request.Value.ToShortTimeString()</td>
+                        <td>@item.Timespan Sec</td>
+                        <td>@cost Rs</td>
+                    </tr>
+                }
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td>Total:</td>
+                    <td>@totcost</td>
+                </tr>
+
+            </tbody>
+
+        </table>
+
+
+
+
+    </div>
+    <br /><br /><br />
+    <center>
+        <div>
+            <a asp-action="dashoboard" class="btn btn-info"><span class="fa fa-arrow-left"> Back to Dashboard</span></a>
+        </div>
+    </center>
+    @*<p>
+
+            <input type="button" value="Print Document" onclick="window.print()" class="btn btn-primary" />
+
+        </p>*@
+}
+
+@section Scripts {
+
+    <script src="~/Theme/bower_components/bootstrap-datepicker/dist/js/bootstrap-datepicker.js"></script>
+    @*<script>
+        $(function () { // will trigger when the document is ready
+            $('.datepicker').datepicker({
+
+                format: 'dd/mm/yyyy'
+            }); //Initialise any date pickers
+            useCurrent: false
+        }).on('dp.show', function () {
+            return $(this).data('DateTimePicker').defaultDate(new Date());
+        });*@
+
+    <script>
+            $(document).ready(function () {
+        var today = new Date();
+        $('.datepicker').datepicker({
+            format: 'dd/mm/yyyy',
+            autoclose:true,
+            endDate: "today",
+            maxDate: today
+        }).on('changeDate', function (ev) {
+                $(this).datepicker('hide');
+            });
+    });
+
+
+
+
+
+
+                //datatable
+
+
+               $(document).ready(function() {
+                   $('#example').DataTable({
+                       responsive: true,
+        dom: 'Bfrtip',
+        buttons: [
+            'print'
+        ]
+    } );
+               });
+
+
+
+
+
+
+
+
+
+
+
+    </script>
+
+
+
+
+
+
+
+}

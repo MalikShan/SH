@@ -6,7 +6,7 @@
 }
 
 
-@if (ViewBag.msg != null || ViewBag.msg2 != null || ViewBag.msg3 != null)
+@if (ViewBag.msg != null || ViewBag.msg2 != null || ViewBag.msg3 != null || ViewBag.msg4 != null)
 {
     @if (ViewBag.msg2 == "Appliance already entered please select another one")
     {
@@ -21,6 +21,11 @@
     {
 
         <div class="alert alert-danger" id="myDiv"> <span class="glyphicon glyphicon-user"></span><h4>@ViewBag.msg3</h4> </div>
+    }
+    @if (ViewBag.msg4 == "Switch already in use select other one please")
+    {
+
+        <div class="alert alert-danger" id="myDiv"> <span class="glyphicon glyphicon-user"></span><h4>@ViewBag.msg4</h4> </div>
     }
 }
 
@@ -66,9 +71,16 @@
             </tr>
 
         }
+       
     </tbody>
 </table>
 
+&nbsp;&nbsp;<br />
+<center>
+    <div>
+        <a asp-action="dashoboard" class="btn btn-info"><span class="fa fa-arrow-left"> Back to Dashboard</span></a>
+    </div>
+</center>
 @section scripts{
     <script>
         $(function () {

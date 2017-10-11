@@ -10,5 +10,7 @@ namespace SH.Models
         public string Status { get; set; }
         public string Voltages { get; set; }
         public int? RoomId { get; set; }
+        public int? Switch_No { get; set; }
+        
     }
 }
