@@ -38,7 +38,6 @@ namespace SH
 
         }
 
-
         #region register and login logout
 
         [HttpGet]
@@ -221,7 +220,7 @@ namespace SH
             strmsg = Convert.ToBase64String(encode);
 
 
-            var account = lc.Residents.Where(u => u.Username == user.Username && u.Password == strmsg).FirstOrDefault();
+            var account = lc.Residents.Where(u => u.Username == user.Username && u.Password == strmsg).SingleOrDefault();
             if (account != null)
             {
 
@@ -266,14 +265,14 @@ namespace SH
 
         #endregion
 
-
         #region all users edit and delete
         public IActionResult allusers()
         {
             if (HttpContext.Session.GetString("Id") != null)
             {
 
-                IList<Residents> list = lc.Residents.Where(u => u.Usertype == "Other").ToList<Residents>();
+                IList<Residents> list = lc.Residents.ToList<Residents>();
+                ViewBag.msg=TempData["msg"];
                 return View(list);
             }
             else
@@ -322,9 +321,19 @@ namespace SH
             if (HttpContext.Session.GetString("Id") != null)
             {
                 Residents obj = lc.Residents.Where(s => s.Id == Id).SingleOrDefault();
-                lc.Residents.Remove(obj);
-                lc.SaveChanges();
-                return RedirectToAction("allusers");
+                
+                if (obj.Id == 1)
+                {
+                    TempData["msg"]="You don't have permission to delete super admin";
+                    return RedirectToAction("allusers");
+
+                }
+                else
+                {
+                    lc.Residents.Remove(obj);
+                    lc.SaveChanges();
+                    return RedirectToAction("allusers");
+                }
             }
             else
             {
@@ -333,9 +342,6 @@ namespace SH
             return View();
         }
         #endregion
-
-
-
 
         #region add room
 
@@ -424,17 +430,20 @@ namespace SH
         }
 
 
-        public IActionResult othershowroom(int arg)
+        public IActionResult othershowroom(int arg , int userid)
         {
             if (HttpContext.Session.GetString("Id") != null)
             {
 
+                ViewBag.user = HttpContext.Session.GetString("Username");
+                
+
                 IList<Room> filtered = new List<Room>();
 
 
-                Residents user = lc.Residents.Where(u => u.Id == arg).SingleOrDefault();
+                Residents user = lc.Residents.Where(u => u.Id == arg || u.Id == userid).SingleOrDefault();
 
-                if (user.Id == arg)
+                if (user.Id == arg || user.Id == userid)
                 {
 
                     IList<Room> rooms = lc.Room.ToList<Room>();
@@ -449,6 +458,7 @@ namespace SH
 
 
                     }
+
                 }
                 return View(filtered);
             }
@@ -461,8 +471,6 @@ namespace SH
         }
 
         #endregion
-
-
 
         #region add and show and delete appliances
 
@@ -553,6 +561,7 @@ namespace SH
             if (HttpContext.Session.GetString("Id") != null)
             {
                 ViewBag.user = HttpContext.Session.GetString("Usertype");
+                ViewBag.id = HttpContext.Session.GetString("Id");
                 IList<Appliances> list = lc.Appliances.Where(u => u.RoomId == roomid).ToList<Appliances>();
 
                 return View(list);
@@ -584,14 +593,9 @@ namespace SH
             return View();
 
         }
-
-
-
-
+        
 
         #endregion
-
-
 
         #region Arduino REquests
         // old region
@@ -763,11 +767,6 @@ namespace SH
 
         #endregion
 
-
-
-
-
-
         //#region Arduino REquests
 
         //3rd old region
@@ -862,9 +861,6 @@ namespace SH
 
         //#endregion
 
-
-
-
         #region Arduino REquests
         public IActionResult AddTransaction(int id)
         {
@@ -904,7 +900,7 @@ namespace SH
                 try
                 {
 
-                    Uri myurl = new Uri("http://192.168.43.101/gpio" + id + "/" + Action);
+                    Uri myurl = new Uri("http://192.168.43.101/gpio" + app.Switch_No + "/" + Action);
                     WebClient wcl = new WebClient();
                     var content = wcl.DownloadString(myurl);
                 }
@@ -962,46 +958,57 @@ namespace SH
 
         #endregion
 
-
-
         #region New Emails
         public bool SendWelcomeEmail()
         {
-           
-                IList<Appliances> olist = lc.Appliances.Where(m => m.Status == "ON").ToList();
-                if (olist.Count() > 0)
-                {
-                    foreach (var item in olist)
-                    {
-                        item.Status = "OFF";
-                        lc.Entry(item).State = EntityState.Modified;
-                        lc.SaveChanges();
-                        ModelState.Clear();
-                    }
-                }
-                IList<Residents> listi = lc.Residents.Where(m => m.Usertype == "Admin").ToList<Residents>();
-                foreach (var items in listi)
-                {
-                    var to = items.Email;
-                    var body = "Welcome! Your Smart home System Now Enable";
-                    var subject = "Welcome!!!";
-                    MailMessage omailmessage = new MailMessage();
-                    omailmessage.From = new MailAddress("smarthome327@gmail.com");
-                    omailmessage.To.Add(to);
-                    omailmessage.Body = body;
-                    omailmessage.Subject = subject;
-                    omailmessage.IsBodyHtml = true;
-                    SmtpClient osmtpclient = new SmtpClient("smtp.gmail.com", 587);
-                    osmtpclient.EnableSsl = true;
-                    osmtpclient.UseDefaultCredentials = true;
-                    osmtpclient.Credentials = new NetworkCredential("smarthome327@gmail.com", "Smart_327");
-                    osmtpclient.Send(omailmessage);
-                }
-                return true;
 
+            IList<Appliances> olist = lc.Appliances.Where(m => m.Status == "ON").ToList();
+            if (olist.Count() > 0)
+            {
+                foreach (var item in olist)
+                {
+                    Transaction t1 = new Transaction();
+                    t1.Request = DateTime.Now;
+                    t1.Permission = DateTime.Now.ToString();
+                    IList<Transaction> OnListOfThisapp = lc.Transaction.Where(m => m.Action == "ON" && m.AppId == item.Id).OrderByDescending(m => m.Id).ToList();
+                    var LastOn = OnListOfThisapp.FirstOrDefault();
+                    t1.user_id = LastOn.user_id;
+                    DateTime startTime = Convert.ToDateTime(LastOn.Request);
+                    DateTime EndTime = Convert.ToDateTime(t1.Request);
+                    TimeSpan time = EndTime - startTime;
+                    t1.Timespan = time.Seconds;
+                    t1.Action = "OFF";
+                    lc.Transaction.Add(t1);
+                    lc.SaveChanges();
+                    item.Status = "OFF";
+                    lc.Entry(item).State = EntityState.Modified;
+                    lc.SaveChanges();
+                    ModelState.Clear();
+                }
             }
+            IList<Residents> listi = lc.Residents.Where(m => m.Usertype == "Admin").ToList<Residents>();
+            foreach (var items in listi)
+            {
+                var to = items.Email;
+                var body = "Welcome! Your Smart home System Now Enable";
+                var subject = "Welcome!!!";
+                MailMessage omailmessage = new MailMessage();
+                omailmessage.From = new MailAddress("smarthome327@gmail.com");
+                omailmessage.To.Add(to);
+                omailmessage.Body = body;
+                omailmessage.Subject = subject;
+                omailmessage.IsBodyHtml = true;
+                SmtpClient osmtpclient = new SmtpClient("smtp.gmail.com", 587);
+                osmtpclient.EnableSsl = true;
+                osmtpclient.UseDefaultCredentials = true;
+                osmtpclient.Credentials = new NetworkCredential("smarthome327@gmail.com", "Smart_327");
+                osmtpclient.Send(omailmessage);
+            }
+            return true;
 
-          
+        }
+
+
         public bool SomeProblemEmail()
         {
             IList<Residents> listi = lc.Residents.ToList<Residents>();
@@ -1053,11 +1060,6 @@ namespace SH
 
         #endregion
 
-
-
-
-
-
         #region Search Time
         [HttpGet]
         public IActionResult SearchTime()
@@ -1083,6 +1085,8 @@ namespace SH
             {
                 DateTime toparse = DateTime.ParseExact(ToDate, "dd/MM/yyyy", null);
                 DateTime fromparse = DateTime.ParseExact(FromDate, "dd/MM/yyyy", null);
+                fromparse = fromparse.AddDays(-1);
+                toparse = toparse.AddDays(1);
                 IList<ViewModelTransactin> olist = (from a in lc.Transaction
                                                     where a.Request >= fromparse && a.Request <= toparse
                                                     join app in lc.Appliances on a.AppId equals app.Id
@@ -1098,6 +1102,9 @@ namespace SH
                                                         roomName = room.Name,
                                                         Timespan = Convert.ToInt32(a.Timespan),
                                                         Action = a.Action,
+                                                        Voltages=app.Voltages,
+                                                        Request=a.Request,
+                                                        Permission=a.Permission,
 
                                                     }).ToList();
                 //  lc.Transaction.Where(m => m.Request >= fromparse && m.Request <= toparse).ToList();        
@@ -1111,12 +1118,6 @@ namespace SH
         }
 
         #endregion
-
-
-
-
-
-
 
         #region User and Cost
         [HttpGet]
@@ -1147,15 +1148,20 @@ namespace SH
         }
 
         [HttpPost]
-        public IActionResult CostByUser(string FromDate, string ToDate)
+        public IActionResult CostByUser(int ddlfirstname, string FromDate, string ToDate)
         {
 
             if (HttpContext.Session.GetString("Id") != null)
             {
+              
+                var us = lc.Residents.Where(m => m.Id == ddlfirstname).SingleOrDefault();
                 DateTime toparse = DateTime.ParseExact(ToDate, "dd/MM/yyyy", null);
                 DateTime fromparse = DateTime.ParseExact(FromDate, "dd/MM/yyyy", null);
+                fromparse=fromparse.AddDays(-1);
+                toparse=toparse.AddDays(1);
                 IList<ViewModelTransactin> olist = (from a in lc.Transaction
-                                                    where a.Request >= fromparse && a.Request <= toparse
+                                                    where a.Request >= fromparse && a.Request <= toparse && a.user_id == us.Id
+                                                    join app in lc.Appliances on a.AppId equals app.Id
                                                     join resi in lc.Residents on a.user_id equals resi.Id
                                                     select new ViewModelTransactin
                                                     {
@@ -1163,13 +1169,26 @@ namespace SH
                                                         Username = resi.Username,
                                                         Timespan = Convert.ToInt32(a.Timespan),
                                                         Action = a.Action,
+                                                        Voltages=app.Voltages,
+                                                        Request = a.Request,
+                                                        Permission = a.Permission,
 
                                                     }).ToList();
+                olist = olist.Where(m => m.Action == "OFF").ToList();
+                ViewBag.Time = olist.Where(m => m.Timespan != 0).Select(m => m.Timespan).Sum();
+                ViewBag.Name = olist.Select(m => m.Username).FirstOrDefault();
+                List<SelectListItem> selectitem = new List<SelectListItem>();
+                var item = lc.Residents.ToList();
+                foreach (var i in item)
+                {
+                    selectitem.Add(new SelectListItem
+                    {
+                        Text = i.Username,
+                        Value = Convert.ToString(i.Id)
+                    });
+                }
 
-                //olist = olist.GroupBy(m => m.Username).ToList();
-
-                //  lc.Transaction.Where(m => m.Request >= fromparse && m.Request <= toparse).ToList();        
-
+                ViewBag.fname = selectitem;
                 return View(olist);
             }
             else
@@ -1179,14 +1198,6 @@ namespace SH
         }
 
         #endregion
-
-
-
-
-
-
-
-
 
         #region dashboard
         public IActionResult dashoboard()
@@ -1201,8 +1212,11 @@ namespace SH
                 IList<Appliances> lista = lc.Appliances.ToList<Appliances>();
                 ViewData["appCount"] = lista.Count;
 
-                IList<Residents> listu = lc.Residents.ToList<Residents>();
+                IList<Residents> listu = lc.Residents.Where(u=>u.Usertype == "Admin").ToList<Residents>();
                 ViewData["userpCount"] = listu.Count;
+
+                IList<Residents> listaa = lc.Residents.Where(u => u.Usertype != "Admin").ToList<Residents>();
+                ViewData["useraCount"] = listaa.Count;
 
                 ViewData["username"] = HttpContext.Session.GetString("Username");
 
@@ -1216,7 +1230,6 @@ namespace SH
         }
 
         #endregion
-
 
         #region graph
 
@@ -1414,9 +1427,6 @@ namespace SH
 
         #endregion
 
-
-
-
         #region email
 
         public IActionResult email()
@@ -1511,10 +1521,6 @@ namespace SH
         #endregion
 
 
-
-
-
-
         public IActionResult Contact()
         {
             if (HttpContext.Session.GetString("Id") != null)
@@ -1537,7 +1543,6 @@ namespace SH
         }
 
 
-
         public IActionResult list()
         {
             IList<Room> room = lc.Room.ToList<Room>();
@@ -1546,7 +1551,6 @@ namespace SH
 
 
         }
-
 
 
         public IActionResult Bill()
@@ -1578,19 +1582,50 @@ namespace SH
         public IActionResult Billapp()
         {
 
-            //SautinSoft.PdfVision v = new SautinSoft.PdfVision();
-            //v.ConvertHtmlFileToPDFFile(@"www.google.com", @"d:\gog.pdf");
+            if (HttpContext.Session.GetString("Usertype") == "Admin")
+            {
+                IList<Room> list = lc.Room.ToList();
+                ViewBag.Room = list;
 
+                IList<Residents> res = lc.Residents.ToList();
+                ViewBag.res = res;
+
+
+                IList<ViewModelTransactin> olist = (from a in lc.Transaction
+                                                    where a.Request.Value.Month == DateTime.Now.Month
+                                                    join app in lc.Appliances on a.AppId equals app.Id
+                                                    join room in lc.Room on app.RoomId equals room.Id
+                                                    join resi in lc.Residents on a.user_id equals resi.Id
+                                                    select new ViewModelTransactin
+                                                    {
+                                                        appId = app.Id,
+                                                        appName = app.Name,
+                                                        UserId = resi.Id,
+                                                        Username = resi.Username,
+                                                        RoomId = room.Id,
+                                                        roomName = room.Name,
+                                                        Timespan = Convert.ToInt32(a.Timespan),
+                                                        Action = a.Action,
+                                                        Voltages=app.Voltages,
+                                                        Request=a.Request,
+                                                        Permission=a.Permission,
+
+                                                    }).ToList();
+                int totaldays=DateTime.DaysInMonth(DateTime.Now.Year,DateTime.Now.Month);
+                string s =  DateTime.Now.Date.ToString();
+                IList<string> il = s.Split('/');
+                string d = il[1];
+                int date = Int32.Parse(d);
+                int actualday = totaldays - date;
+                ViewBag.days = actualday;   
+                return View(olist);
+            }
             return View();
-
         }
-
-
-
         
     }
 
-    }
+}
 
 
 

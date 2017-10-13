@@ -21,7 +21,7 @@
                     <input type="datetime" placeholder="From Date" class="form-control datepicker" id="FromDate" name="FromDate">
                     <input type="datetime" placeholder="To Date" class="form-control datepicker" id="ToDate" name="ToDate">
                     &nbsp; &nbsp;
-                     <input type="submit" value="Gnrate Report" class="btn btn-info" />
+                     <input type="submit" value="Generate Report" class="btn btn-info" />
 
                 </div>
             </center>
@@ -31,13 +31,13 @@
             </div>
         </div>
     </form>
-<div><center><h4>Genral Report</h4></center></div>
+<div><center><h4>General Report</h4></center></div>
 @if (Model != null)
 {
     double totcost = 0;
     var a = Model.Where(m => m.Timespan != 0 && m.Action == "OFF");
     <div class="table-responsive">
-        <table class="table table-striped" id="example">
+        <table class="table table-striped">
 
 
             <thead>
@@ -77,18 +77,15 @@
                     <td></td>
                     <td></td>
                     <td>Total:</td>
-                    <td>@totcost</td>
+                    <td>@totcost Rs</td>
                 </tr>
 
             </tbody>
 
-        </table>
-
-
-
-       
+        </table>   
 </div>
-    <br /><br /><br />
+}
+<br /><br /><br />
     <center>
         <div>
             <a asp-action="dashoboard" class="btn btn-info"><span class="fa fa-arrow-left"> Back to Dashboard</span></a>
@@ -99,7 +96,7 @@
                 <input type="button" value="Print Document" onclick="window.print()" class="btn btn-primary" />
 
             </p>*@
-        }
+        
 
         @section Scripts {
 

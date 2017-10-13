@@ -1,14 +1,20 @@
-﻿<h2>Your appliance is on</h2>
-
+﻿
 
 @if (ViewBag.AppStatus != null)
 {
     @if (ViewBag.AppStatus == "ON")
     {
-        <h2>Your appliance is OFF</h2>
+        <h2>Your Request is Underprosess</h2>
     }
     @if (ViewBag.AppStatus == "OFF")
     {
-        <h2>Your appliance is ON</h2>
+        <h2>Your Request is Underprosess</h2>
     }
 }
+
+&nbsp;&nbsp;<br />
+<center>
+    <div>
+        <a asp-action="Showrooms" class="btn btn-info"><span class="fa fa-arrow-left"> Back to Showrooms</span></a>
+    </div>
+</center>
